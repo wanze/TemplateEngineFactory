@@ -1,0 +1,119 @@
+<?php
+require_once('TemplateEngine.php');
+
+/**
+ * TemplateEngineProcesswire
+ *
+ * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
+ *
+ * ProcessWire 2.x
+ * Copyright (C) 2014 by Ryan Cramer
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ *
+ * http://processwire.com
+ */
+
+class TemplateEngineProcesswire extends TemplateEngine implements Module, ConfigurableModule
+{
+
+    /**
+     * @var TemplateFile
+     */
+    protected $template;
+
+
+    /**
+     * @param string $filename
+     */
+    public function __construct($filename = '')
+    {
+        parent::__construct($filename);
+    }
+
+
+    /**
+     * Initialize module
+     */
+    public function init()
+    {
+        parent::init();
+        $this->template = new TemplateFile($this->getTemplatesPath() . $this->getFilename());
+    }
+
+
+    /**
+     * Set a key/value pair to the template
+     *
+     * @param $key
+     * @param $value
+     */
+    public function set($key, $value)
+    {
+        $this->template->set($key, $value);
+    }
+
+
+    /**
+     * Render markup from template file
+     *
+     * @return mixed
+     */
+    public function render()
+    {
+        return $this->template->render();
+    }
+
+
+    /**
+     * @param string $filename
+     */
+    public function setFilename($filename) {
+        if (preg_match("/\.php$/", $filename)) {
+            $this->filename = $filename;
+        } else {
+            $this->filename = $filename . '.php';
+        }
+    }
+
+
+    /**
+     * Per interface Module, ConfigurableModule
+     *
+     */
+
+
+    /**
+     * @return array
+     */
+    public static function getModuleInfo()
+    {
+        return array(
+            'title' => 'Template Engine ProcessWire',
+            'version' => 100,
+            'author' => 'Stefan Wanzenried',
+            'summary' => 'ProcessWire templates for the TemplateEngine',
+            'href' => '',
+            'singular' => false,
+            'autoload' => false,
+            'requires' => array('TemplateEngineFactory'),
+        );
+    }
+
+
+    /**
+     * Return an InputfieldWrapper of Inputfields used to configure the class
+     *
+     * @param array $data Array of config values indexed by field name
+     * @return InputfieldWrapper
+     */
+    public static function getModuleConfigInputfields(array $data)
+    {
+        /** @var Modules $modules */
+        $data = array_merge(self::getDefaultConfig(), $data);
+        $wrapper = parent::getModuleConfigInputfields($data);
+        $modules = wire('modules');
+
+        return $wrapper;
+    }
+
+}

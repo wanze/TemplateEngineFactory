@@ -1,0 +1,246 @@
+<?php
+/**
+ * TemplateEngineFactory
+ *
+ * This module takes another approach to separate logic from markup. It turns ProcessWire templates into controllers
+ * which can interact with different template engines over a new API variable.
+ *
+ * What this class does:
+ * - Serves as factory to return instances of the current active TemplateEngine module, e.g. Smarty or Twig
+ * - Provide and API variable, e.g. 'view' which can be used to interact with the template engine
+ * - Add hooks for rendering output over template engine and clear cache(s) when modifying pages
+ *
+ * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
+ *
+ * ProcessWire 2.x
+ * Copyright (C) 2014 by Ryan Cramer
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ *
+ * http://processwire.com
+ *
+ */
+
+class TemplateEngineFactory extends WireData implements Module, ConfigurableModule
+{
+
+    /**
+     * @var array
+     */
+    protected static $default_config = array(
+        'engine' => 'processwire',
+        'api_var' => 'view',
+    );
+
+    /**
+     * Available template engines
+     * @var array
+     */
+    protected static $available_engines = array(
+        'processwire' => 'ProcessWire',
+        'smarty' => 'Smarty',
+        'twig' => 'Twig',
+    );
+
+
+    public function __construct()
+    {
+        foreach (self::$default_config as $k => $v) {
+            $this->set($k, $v);
+        }
+    }
+
+    /**
+     * Provide an API variable to access the template of current page and attach hooks
+     */
+    public function ready()
+    {
+        if (!$this->engine) return;
+        $template = $this->page->template->name;
+        $engine = $this->getInstanceById($this->engine, $template);
+        if ($engine === null) return;
+        $this->wire($this->api_var, $engine);
+        $this->addHookAfter('Page::render', $this, 'render');
+        // If the engine supports caching, attach hooks to clear the cache when saving/deleting pages
+        if (in_array('TemplateEngineCache', class_implements($engine))) {
+            $this->pages->addHookAfter('save', $this, 'clearCache');
+            $this->pages->addHookAfter('delete', $this, 'clearCache');
+        }
+    }
+
+
+    /**
+     * Method executed after Page::render()
+     *
+     * @param HookEvent $event
+     */
+    public function render(HookEvent $event)
+    {
+        $page = $event->object;
+        if ($page->template == 'admin') return;
+        /** @var TemplateEngine $engine */
+        $engine = wire($this->api_var);
+        $event->return = $engine->render();
+    }
+
+
+    /**
+     * Method executed after saving or deleting a page, always clear complete cache
+     *
+     * @param HookEvent $event
+     */
+    public function clearCache(HookEvent $event)
+    {
+        /** @var TemplateEngineCache $engine */
+        $engine = wire($this->api_var);
+        $engine->clearAllCache();
+    }
+
+
+    /**
+     * Return an array of all installed TemplateEngine modules
+     *
+     * @return array
+     */
+    public static function getInstalledEngines()
+    {
+        /** @var Modules $modules */
+        $installed = array();
+        $modules = wire('modules');
+        foreach (self::$available_engines as $id => $title) {
+            $class = self::buildClassName($id);
+            if ($modules->isInstalled($class)) {
+                $installed[$id] = $title;
+            }
+        }
+        return $installed;
+    }
+
+
+    /**
+     * Get an instance of a concrete TemplateEngine module, e.g. TemplateEngineSmarty.
+     * If the template file is not existing, null is returned. In this case, the module assumes
+     * that the controller aka Pw-Template does not want to render anything.
+     *
+     * @param string $id ID of the module
+     * @param string $filename Optionally: Filename of a template file
+     * @return TemplateEngine|null
+     * @throws WireException
+     */
+    public function getInstanceById($id, $filename = '')
+    {
+        $installed = $this->getInstalledEngines();
+        if (!in_array($id, array_keys($installed))) {
+            throw new WireException("TemplateEngine with ID {$id} is currently not installed");
+        }
+        $class = self::buildClassName($id);
+        /** @var TemplateEngine $engine */
+        $engine = new $class($filename);
+        if (!is_file($engine->getTemplatesPath() . $engine->getFilename())) {
+            return null;
+        }
+        $engine->init();
+        return $engine;
+    }
+
+
+    /**
+     * Get an instance of the current active TemplateEngine module with a given filename
+     *
+     * @param $filename
+     * @return TemplateEngine
+     */
+    public function getInstanceByFilename($filename)
+    {
+        return $this->getInstanceById($this->engine, $filename);
+    }
+
+
+    /**
+     * Shortcut for getInstanceByFilename
+     *
+     * @param $filename
+     * @return TemplateEngine
+     */
+    public function instance($filename)
+    {
+        return $this->getInstanceByFilename($filename);
+    }
+
+
+    /**
+     * Build the a class name from a given ID
+     *
+     * @param $id
+     * @return string
+     */
+    public static function buildClassName($id)
+    {
+        return 'TemplateEngine' . ucfirst($id);
+    }
+
+
+
+    /**
+     * Per interface Module, ConfigurableModule
+     *
+     */
+
+
+    /**
+     * @return array
+     */
+    public static function getModuleInfo()
+    {
+        return array(
+            'title' => 'Template Engine Factory',
+            'version' => 100,
+            'author' => 'Stefan Wanzenried',
+            'summary' => 'This module aims to separate logic from markup.' .
+                         'Turns ProcessWire templates into controllers which can interact over a new API ' .
+                         'variable to template engines like Smarty or Twig.',
+            'href' => '',
+            'singular' => true,
+            'autoload' => true,
+            'requires' => array(''),
+            'installs' => array('TemplateEngineProcesswire'),
+        );
+    }
+
+
+    /**
+     * Get config fields
+     *
+     * @param array $data Array of config values indexed by field name
+     * @return InputfieldWrapper
+     */
+    public static function getModuleConfigInputfields(array $data)
+    {
+        $modules = wire('modules');
+        $config = wire('config');
+        $wrapper = new InputfieldWrapper();
+        $data = array_merge(self::$default_config, $data);
+
+        /** @var InputfieldSelect $f */
+        $engines = self::getInstalledEngines();
+        $class = self::buildClassName($data['engine']);
+        $f = $modules->get('InputfieldSelect');
+        $f->label = __('Template Engine');
+        $f->description = __('Select the template engine which is used to render your templates.');
+        $f->notes = __('More config options available in the selected TemplateEngine module.');
+        $f->value = $data['engine'];
+        $f->name = 'engine';
+        $f->addOptions($engines);
+        $wrapper->append($f);
+
+        /** @var InputfieldText $f */
+        $f = $modules->get('InputfieldText');
+        $f->label = __('API variable');
+        $f->description = __('Enter the name of the API variable with which you can interact with your templates.');
+        $f->name = 'api_var';
+        $f->value = $data['api_var'];
+        $f->required = 1;
+        $wrapper->append($f);
+
+        return $wrapper;
+    }
+}
