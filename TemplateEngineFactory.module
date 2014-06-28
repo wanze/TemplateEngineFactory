@@ -138,7 +138,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         if (!is_file($engine->getTemplatesPath() . $engine->getFilename())) {
             return null;
         }
-        $engine->init();
+        $engine->initEngine();
         return $engine;
     }
 
@@ -164,6 +164,15 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     public function instance($filename)
     {
         return $this->getInstanceByFilename($filename);
+    }
+
+
+    /**
+     * @param $filename
+     * @return null|TemplateEngine
+     */
+    public function load($filename) {
+        return $this->getInstanceById($filename);
     }
 
 

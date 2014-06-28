@@ -49,11 +49,9 @@ abstract class TemplateEngine extends Wire
 
 
     /**
-     * Load global config values
+     * Init engine, derived classes should use this method to bootstrap the engines
      */
-    public function init()
-    {
-    }
+    public function initEngine() {}
 
 
     /**
