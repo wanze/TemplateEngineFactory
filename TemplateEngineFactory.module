@@ -176,7 +176,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      * @return null|TemplateEngine
      */
     public function load($filename) {
-        return $this->getInstanceById($filename);
+        return $this->getInstanceByFilename($filename);
     }
 
 
@@ -228,13 +228,11 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     public static function getModuleConfigInputfields(array $data)
     {
         $modules = wire('modules');
-        $config = wire('config');
         $wrapper = new InputfieldWrapper();
         $data = array_merge(self::$default_config, $data);
 
         /** @var InputfieldSelect $f */
         $engines = self::getInstalledEngines();
-        $class = self::buildClassName($data['engine']);
         $f = $modules->get('InputfieldSelect');
         $f->label = __('Template Engine');
         $f->description = __('Select the template engine which is used to render your templates.');
