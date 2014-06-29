@@ -31,12 +31,15 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
     }
 
 
+    public function init() {}
+
+
     /**
      * Initialize module
      */
-    public function init()
+    public function initEngine()
     {
-        parent::init();
+        parent::initEngine();
         $this->template = new TemplateFile($this->getTemplatesPath() . $this->getFilename());
     }
 

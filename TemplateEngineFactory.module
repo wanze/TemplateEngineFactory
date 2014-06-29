@@ -49,6 +49,10 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         }
     }
 
+
+    public function init() {}
+
+
     /**
      * Provide an API variable to access the template of current page and attach hooks
      */
@@ -210,7 +214,6 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
             'href' => '',
             'singular' => true,
             'autoload' => true,
-            'requires' => array(''),
             'installs' => array('TemplateEngineProcesswire'),
         );
     }
