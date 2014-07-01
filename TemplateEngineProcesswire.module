@@ -111,11 +111,8 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
      */
     public static function getModuleConfigInputfields(array $data)
     {
-        /** @var Modules $modules */
         $data = array_merge(self::getDefaultConfig(), $data);
         $wrapper = parent::getModuleConfigInputfields($data);
-        $modules = wire('modules');
-
         return $wrapper;
     }
 

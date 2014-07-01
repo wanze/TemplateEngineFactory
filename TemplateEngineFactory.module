@@ -1,4 +1,6 @@
 <?php
+require_once('TemplateEngineNull.php');
+
 /**
  * TemplateEngineFactory
  *
@@ -7,7 +9,7 @@
  *
  * What this class does:
  * - Serves as factory to return instances of the current active TemplateEngine module, e.g. Smarty or Twig
- * - Provide and API variable, e.g. 'view' which can be used to interact with the template engine
+ * - Provide and API variable, e.g. 'view' which can be used to interact with the template engine of current page's template
  * - Add hooks for rendering output over template engine and clear cache(s) when modifying pages
  *
  * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
@@ -54,14 +56,27 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
 
 
     /**
-     * Provide an API variable to access the template of current page and attach hooks
+     * Provide an API variable to access the template of current page and attach hooks.
+     * If a template file is found, adds hook after Page::render to output markup from engine.
+     * If template engine supports caching, adds hooks to clear cache on page save/delete.
+     *
+     * Note that if no engine is selected or the requested template file is not found,
+     * an instance of the "TemplateEngineNull" is provided for the API variable (prevents
+     * null pointers in controllers).
+     *
      */
     public function ready()
     {
-        if (!$this->engine) return;
+        if (!$this->engine) {
+            $this->wire($this->api_var, new TemplateEngineNull());
+            return;
+        }
         $template = $this->page->template->name;
         $engine = $this->getInstanceById($this->engine, $template);
-        if ($engine === null) return;
+        if ($engine === null) {
+            $this->wire($this->api_var, new TemplateEngineNull());
+            return;
+        }
         $this->wire($this->api_var, $engine);
         $this->addHookAfter('Page::render', $this, 'render');
         // If the engine supports caching, attach hooks to clear the cache when saving/deleting pages
@@ -95,7 +110,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     public function clearCache(HookEvent $event)
     {
         /** @var TemplateEngineCache $engine */
-        $engine = wire($this->api_var);
+        $engine = $this->wire($this->api_var);
         $engine->clearAllCache();
     }
 
@@ -123,7 +138,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     /**
      * Get an instance of a concrete TemplateEngine module, e.g. TemplateEngineSmarty.
      * If the template file is not existing, null is returned. In this case, the module assumes
-     * that the controller aka Pw-Template does not want to render anything.
+     * that the controller aka does not want to render anything.
      *
      * @param string $id ID of the module
      * @param string $filename Optionally: Filename of a template file
@@ -151,7 +166,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      * Get an instance of the current active TemplateEngine module with a given filename
      *
      * @param $filename
-     * @return TemplateEngine
+     * @return TemplateEngine|null
      */
     public function getInstanceByFilename($filename)
     {
@@ -160,10 +175,8 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
 
 
     /**
-     * Shortcut for getInstanceByFilename
-     *
      * @param $filename
-     * @return TemplateEngine
+     * @return TemplateEngine|null
      */
     public function instance($filename)
     {
