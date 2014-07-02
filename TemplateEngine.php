@@ -49,6 +49,22 @@ abstract class TemplateEngine extends Wire
 
 
     /**
+     * Register the template engine when installing
+     */
+    public function install() {
+        $this->factory->registerEngine($this);
+    }
+
+
+    /**
+     * Unregister template engine when uninstalling
+     */
+    public function uninstall() {
+        $this->factory->unregisterEngine($this);
+    }
+
+
+    /**
      * Init engine, derived classes should use this method to bootstrap the engines
      */
     public function initEngine() {}
