@@ -14,7 +14,7 @@ Install the module just like any other ProcessWire module. Check out the followi
 * **Template Engine** The template engine that is used to render your templates. Any installed engine is listed here. By default, you can choose *ProcessWire*, the engine that ships with this module.
 * **API variable** This is the variable you can use in the controllers (ProcessWire templates) to access the template of the current page.
 
-Any configurations related to the engines are set in the config options of the engine itself, e.g. *TemplateEngineProcesswire*. One setting configurable for each engine is where the template files are stored.
+Any configurations related to the engines are set in the config options of the engine itself, e.g. *TemplateEngineProcesswire*.
 
 ##How does it work?
 For each controller that should output markup a corresponding template file should exist (in the directory configured per engine). The convention is that the template file *must* have the same name as the controller (aka ProcessWire template):
@@ -22,7 +22,7 @@ For each controller that should output markup a corresponding template file shou
 * Template `/site/templates/views/home.php` corresponds to controller `/site/templates/home.php`
 * Template `/site/templates/views/product.php` corresponds to controller `/site/templates/product.php`
 
-The factory tries to load the template file of the current page's controller. If a template file is found, an instance of it is accessible over the API variable. If no template file is found, the factory assumes that the controller does not output markup over the template engine.
+The factory tries to load the template file of the current page's controller. If a template file is found, an instance of it is accessible over the API variable. If no template file is found, the factory assumes that the controller does not output markup over the template engine. In this case, the hook to modify the behaviour of Page::render() are not attached - everything works "normal".
 
 The following example uses the ProcessWire template engine:
 ```php
