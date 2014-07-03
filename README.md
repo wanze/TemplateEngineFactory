@@ -11,7 +11,7 @@ ProcessWire module helping to separate logic from markup. It turns ProcessWire t
 Install the module just like any other ProcessWire module. Check out the following guide: http://modules.processwire.com/install-uninstall/
 
 ##Configuration
-* **Template Engine** The template engine that is used to render your templates. Any installed engine is listed here. By default, you can choose *ProcessWire*, the engine that ships with this module.
+* **Template Engine** The template engine that is used to render your templates. Any installed engine is listed here. By default, you can choose *ProcessWire*, the engine that ships with this module. To use another engine like Smarty or Twig, download the module (see links above) and install it. Once installed, the engine is recognized and selectable here.
 * **API variable** This is the variable you can use in the controllers (ProcessWire templates) to access the template of the current page.
 
 Any configurations related to the engines are set in the config options of the engine itself, e.g. *TemplateEngineProcesswire*.
