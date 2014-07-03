@@ -76,7 +76,7 @@ Use the TemplateEngineFactory module to load any template file and output it's m
 
 $factory = $modules->get('TemplateEngineFactory');
 $chunk = $factory->load('chunks/product_chunk.tpl');
-$chunk->set('product_title', $page->title');
+$chunk->set('product_title', $page->title);
 $chunk->set('date', date('d.m.Y'));
 $chunk_output = $chunk->render();
 $view->set('chunk', $chunk_output);
