@@ -42,7 +42,7 @@ In the example above, we process some logic if a form was sent. Note that we do 
 // In template file: /site/templates/view/home.php
 
 <h1><?= $page->title ?></h1>
-<p>Foo: <?= $bar ?></p>
+<p>Foo: <?= $foo ?></p>
 
 <?php if ($show_nav): ?>
   <ul>
@@ -57,7 +57,7 @@ Assume that we'd have installed the module *TemplateEngineSmarty* and chosen *Sm
 // In template file: /site/templates/smarty/home.tpl
 
 <h1>{$page->title}</h1>
-<p>Foo: {$bar}</p>
+<p>Foo: {$foo}</p>
 
 {if $show_nav}
   <ul>
