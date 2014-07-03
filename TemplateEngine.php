@@ -109,6 +109,15 @@ abstract class TemplateEngine extends Wire
 
 
     /**
+     * ProcessWire does call this method and set config values from database
+     *
+     */
+    public function setConfigData(array $data=array()) {
+        $this->loaded_config = array_merge($this->getDefaultConfig(), $data);
+    }
+
+
+    /**
      * Return config all implemented engines share in common
      *
      * @param array $data

@@ -140,6 +140,11 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         $engines = $this->get('registered_engines');
         unset($engines[$engine->className]);
         $this->set('registered_engines', $engines);
+        if ($this->get('engine') == $engine->className) {
+            $this->set('engine', '');
+            $msg = $this->_("The uninstalled template engine was selected by the TemplateEngineFactory, reset the engine");
+            $this->wire('session')->message($msg);
+        }
         $this->wire('modules')->saveModuleConfigData($this, $this->data);
     }
 
