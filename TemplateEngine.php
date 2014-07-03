@@ -25,12 +25,14 @@ abstract class TemplateEngine extends Wire
 
     /**
      * Filename of template file
+     *
      * @var string
      */
     protected $filename = '';
 
     /**
      * Instance to the TemplateEngineFactory module
+     *
      * @var TemplateEngineFactory
      */
     protected $factory;
@@ -50,22 +52,30 @@ abstract class TemplateEngine extends Wire
 
     /**
      * Register the template engine when installing
+     *
      */
-    public function install() {
+    public function install()
+    {
         $this->factory->registerEngine($this);
     }
 
 
     /**
      * Unregister template engine when uninstalling
+     *
      */
-    public function uninstall() {
+    public function uninstall()
+    {
         $this->factory->unregisterEngine($this);
     }
 
 
+    public function init() {}
+
+
     /**
      * Init engine, derived classes should use this method to bootstrap the engines
+     *
      */
     public function initEngine() {}
 
@@ -193,11 +203,11 @@ abstract class TemplateEngine extends Wire
 
     /**
      * Load configuration
+     *
      */
-    protected function initConfig() {
-        /** @var Modules $modules */
-        $modules = wire('modules');
-        $configs = $modules->getModuleConfigData($this);
+    protected function initConfig()
+    {
+        $configs = $this->wire('modules')->getModuleConfigData($this);
         $this->loaded_config = array_merge($this->getDefaultConfig(), $configs);
     }
 }

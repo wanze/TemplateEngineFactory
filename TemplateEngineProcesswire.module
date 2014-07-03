@@ -31,9 +31,6 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
     }
 
 
-    public function init() {}
-
-
     /**
      * Initialize module
      */
