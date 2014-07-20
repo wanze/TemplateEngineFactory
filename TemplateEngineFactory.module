@@ -32,6 +32,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         'engine' => '',
         'api_var' => 'view',
         'registered_engines' => array(),
+        'active' => true,
     );
 
 
@@ -84,13 +85,16 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
 
     /**
      * Method executed after Page::render()
+     * If we are in the admin or the factory is not active, return early
      *
      * @param HookEvent $event
      */
     public function hookRender(HookEvent $event)
     {
         $page = $event->object;
-        if ($page->template == 'admin') return;
+        if ($page->template == 'admin' || !$this->get('active')) {
+            return;
+        }
         /** @var TemplateEngine $engine */
         $engine = wire($this->get('api_var'));
         $event->return = $engine->render();
