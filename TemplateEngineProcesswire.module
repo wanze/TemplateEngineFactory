@@ -5,6 +5,7 @@ require_once('TemplateEngine.php');
  * TemplateEngineProcesswire
  *
  * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
+ * @version 1.0.1
  *
  * ProcessWire 2.x
  * Copyright (C) 2014 by Ryan Cramer
@@ -12,7 +13,6 @@ require_once('TemplateEngine.php');
  *
  * http://processwire.com
  */
-
 class TemplateEngineProcesswire extends TemplateEngine implements Module, ConfigurableModule
 {
 
@@ -42,6 +42,18 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
 
 
     /**
+     * @return array
+     */
+    public static function getDefaultConfig()
+    {
+        $config = parent::getDefaultConfig();
+        return array_merge($config, array(
+            'template_files_suffix' => 'php',
+        ));
+    }
+
+
+    /**
      * Set a key/value pair to the template
      *
      * @param $key
@@ -67,11 +79,13 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
     /**
      * @param string $filename
      */
-    public function setFilename($filename) {
-        if (preg_match("/\.php$/", $filename)) {
+    public function setFilename($filename)
+    {
+        $suffix = $this->getConfig('template_files_suffix');
+        if (preg_match("/\.{$suffix}$/", $filename)) {
             $this->filename = $filename;
         } else {
-            $this->filename = $filename . '.php';
+            $this->filename = $filename . ".{$suffix}";
         }
     }
 
@@ -89,9 +103,9 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
     {
         return array(
             'title' => 'Template Engine ProcessWire',
-            'version' => 100,
+            'version' => 101,
             'author' => 'Stefan Wanzenried',
-            'summary' => 'ProcessWire templates for the TemplateEngine',
+            'summary' => 'ProcessWire templates for the TemplateEngineFactory',
             'href' => '',
             'singular' => false,
             'autoload' => false,
@@ -110,6 +124,16 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
     {
         $data = array_merge(self::getDefaultConfig(), $data);
         $wrapper = parent::getModuleConfigInputfields($data);
+        $modules = wire('modules');
+
+        $f = $modules->get('InputfieldText');
+        $f->label = __('Template files suffix');
+        $f->description = __('File extension of template files');
+        $f->name = 'template_files_suffix';
+        $f->value = $data['template_files_suffix'];
+        $f->required = 1;
+        $wrapper->append($f);
+
         return $wrapper;
     }
 
