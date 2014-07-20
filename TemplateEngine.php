@@ -14,7 +14,6 @@
  * http://processwire.com
  *
  */
-
 abstract class TemplateEngine extends Wire
 {
 
@@ -44,9 +43,8 @@ abstract class TemplateEngine extends Wire
     public function __construct($filename = '')
     {
         $this->initConfig(); // Want to have config available as early as possible
-        $modules = wire('modules');
         $this->setFilename($filename);
-        $this->factory = $modules->get('TemplateEngineFactory'); // Module is singular === singleton
+        $this->factory = $this->wire('modules')->get('TemplateEngineFactory'); // Module is singular === singleton
     }
 
 
@@ -70,14 +68,18 @@ abstract class TemplateEngine extends Wire
     }
 
 
-    public function init() {}
+    public function init()
+    {
+    }
 
 
     /**
      * Init engine, derived classes should use this method to bootstrap the engines
      *
      */
-    public function initEngine() {}
+    public function initEngine()
+    {
+    }
 
 
     /**
@@ -113,7 +115,8 @@ abstract class TemplateEngine extends Wire
     public static function getDefaultConfig()
     {
         return array(
-            'templates_path' => 'templates/views/',         // Relative to /site/ directory
+            'templates_path' => 'templates/views/', // Relative to /site/ directory
+            'global_template' => '',
         );
     }
 
@@ -122,7 +125,8 @@ abstract class TemplateEngine extends Wire
      * ProcessWire does call this method and set config values from database
      *
      */
-    public function setConfigData(array $data=array()) {
+    public function setConfigData(array $data = array())
+    {
         $this->loaded_config = array_merge($this->getDefaultConfig(), $data);
     }
 
@@ -137,13 +141,22 @@ abstract class TemplateEngine extends Wire
     {
         $wrapper = new InputfieldWrapper();
         $modules = wire('modules');
+
         $f = $modules->get('InputfieldText');
         $f->name = 'templates_path';
-        $f->label = 'Path to templates';
+        $f->label = __('Path to templates');
         $f->description = __('Relative path from the site directory where template files are stored. E.g. "templates/views/" resolves to "/site/templates/views/"');
         $f->value = $data['templates_path'];
         $f->required = 1;
         $wrapper->append($f);
+
+        $f = $modules->get('InputfieldText');
+        $f->name = 'global_template';
+        $f->label = __('Global template file');
+        $f->description = __('Filename of a template file that is used as main template behind the API variable');
+        $f->value = $data['global_template'];
+        $wrapper->append($f);
+
         return $wrapper;
     }
 
