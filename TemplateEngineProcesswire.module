@@ -5,6 +5,7 @@ require_once('TemplateEngine.php');
  * TemplateEngineProcesswire
  *
  * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
+ * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
  * @version 1.0.1
  *
  * ProcessWire 2.x
@@ -36,7 +37,6 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
      */
     public function initEngine()
     {
-        parent::initEngine();
         $this->template = new TemplateFile($this->getTemplatesPath() . $this->getFilename());
     }
 
@@ -76,19 +76,6 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
     }
 
 
-    /**
-     * @param string $filename
-     */
-    public function setFilename($filename)
-    {
-        $suffix = $this->getConfig('template_files_suffix');
-        if (preg_match("/\.{$suffix}$/", $filename)) {
-            $this->filename = $filename;
-        } else {
-            $this->filename = $filename . ".{$suffix}";
-        }
-    }
-
 
     /**
      * Per interface Module, ConfigurableModule
@@ -124,16 +111,6 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
     {
         $data = array_merge(self::getDefaultConfig(), $data);
         $wrapper = parent::getModuleConfigInputfields($data);
-        $modules = wire('modules');
-
-        $f = $modules->get('InputfieldText');
-        $f->label = __('Template files suffix');
-        $f->description = __('File extension of template files');
-        $f->name = 'template_files_suffix';
-        $f->value = $data['template_files_suffix'];
-        $f->required = 1;
-        $wrapper->append($f);
-
         return $wrapper;
     }
 
