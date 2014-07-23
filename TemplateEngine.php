@@ -6,6 +6,7 @@
  * Base class for all implemented template engines.
  *
  * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
+ * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
  *
  * ProcessWire 2.x
  * Copyright (C) 2014 by Ryan Cramer
@@ -18,9 +19,11 @@ abstract class TemplateEngine extends Wire
 {
 
     /**
+     * Stores module configuration per implemented TemplateEngine
+     *
      * @var array
      */
-    protected $loaded_config = array();
+    protected static $loaded_config = array();
 
     /**
      * Filename of template file
@@ -68,18 +71,14 @@ abstract class TemplateEngine extends Wire
     }
 
 
-    public function init()
-    {
-    }
+    public function init() {}
 
 
     /**
-     * Init engine, derived classes should use this method to bootstrap the engines
+     * Init engine, derived classes must use this method to setup the engine
      *
      */
-    public function initEngine()
-    {
-    }
+    abstract public function initEngine();
 
 
     /**
@@ -117,18 +116,17 @@ abstract class TemplateEngine extends Wire
         return array(
             'templates_path' => 'templates/views/', // Relative to /site/ directory
             'global_template' => '',
+            'template_files_suffix' => 'tpl',
         );
     }
 
 
     /**
      * ProcessWire does call this method and set config values from database
+     * In our context, the config is loaded and available already in the constructor so just leave empty
      *
      */
-    public function setConfigData(array $data = array())
-    {
-        $this->loaded_config = array_merge($this->getDefaultConfig(), $data);
-    }
+    public function setConfigData(array $data = array()) {}
 
 
     /**
@@ -151,6 +149,14 @@ abstract class TemplateEngine extends Wire
         $wrapper->append($f);
 
         $f = $modules->get('InputfieldText');
+        $f->label = __('Template files suffix');
+        $f->description = __('File extension of template files');
+        $f->name = 'template_files_suffix';
+        $f->value = $data['template_files_suffix'];
+        $f->required = 1;
+        $wrapper->append($f);
+
+        $f = $modules->get('InputfieldText');
         $f->name = 'global_template';
         $f->label = __('Global template file');
         $f->description = __('Filename of a template file that is used as main template behind the API variable');
@@ -169,18 +175,19 @@ abstract class TemplateEngine extends Wire
      */
     public function getConfig($key)
     {
-        return (isset($this->loaded_config[$key])) ? $this->loaded_config[$key] : null;
+        return (isset(self::$loaded_config[$this->className][$key])) ? self::$loaded_config[$this->className][$key] : null;
     }
 
 
     /**
-     * Set a config value (runtime only)
+     * Set a config value (runtime only and for all instances of the derived TemplateEngine class)
+     *
      * @param $key
      * @param $value
      */
     public function setConfig($key, $value)
     {
-        $this->loaded_config[$key] = $value;
+        self::$loaded_config[$this->className][$key] = $value;
     }
 
 
@@ -198,7 +205,12 @@ abstract class TemplateEngine extends Wire
      */
     public function setFilename($filename)
     {
-        $this->filename = $filename;
+        $suffix = $this->getConfig('template_files_suffix');
+        if (preg_match("/\.{$suffix}$/", $filename)) {
+            $this->filename = $filename;
+        } else {
+            $this->filename = $filename . '.' . $suffix;
+        }
     }
 
 
@@ -215,12 +227,14 @@ abstract class TemplateEngine extends Wire
 
 
     /**
-     * Load configuration
+     * Load configuration once for all instances of TemplateEngine
      *
      */
     protected function initConfig()
     {
-        $configs = $this->wire('modules')->getModuleConfigData($this);
-        $this->loaded_config = array_merge($this->getDefaultConfig(), $configs);
+        if (!isset(self::$loaded_config[$this->className])) {
+            $configs = $this->wire('modules')->getModuleConfigData($this);
+            self::$loaded_config[$this->className] = array_merge($this->getDefaultConfig(), $configs);
+        }
     }
 }
