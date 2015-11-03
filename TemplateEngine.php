@@ -8,12 +8,6 @@
  * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
  *
- * ProcessWire 2.x
- * Copyright (C) 2014 by Ryan Cramer
- * Licensed under GNU/GPL v2, see LICENSE.TXT
- *
- * http://processwire.com
- *
  */
 abstract class TemplateEngine extends Wire
 {
@@ -53,7 +47,6 @@ abstract class TemplateEngine extends Wire
 
     /**
      * Register the template engine when installing
-     *
      */
     public function install()
     {
@@ -63,7 +56,6 @@ abstract class TemplateEngine extends Wire
 
     /**
      * Unregister template engine when uninstalling
-     *
      */
     public function uninstall()
     {
@@ -71,12 +63,13 @@ abstract class TemplateEngine extends Wire
     }
 
 
-    public function init() {}
+    public function init()
+    {
+    }
 
 
     /**
      * Init engine, derived classes must use this method to setup the engine
-     *
      */
     abstract public function initEngine();
 
@@ -126,7 +119,9 @@ abstract class TemplateEngine extends Wire
      * In our context, the config is loaded and available already in the constructor so just leave empty
      *
      */
-    public function setConfigData(array $data = array()) {}
+    public function setConfigData(array $data = array())
+    {
+    }
 
 
     /**
@@ -222,7 +217,8 @@ abstract class TemplateEngine extends Wire
     public function getTemplatesPath()
     {
         $path = ltrim($this->getConfig('templates_path'), '/');
-        return $this->config->paths->root . 'site/' . rtrim($path, '/') . '/';
+
+        return $this->wire('config')->paths->site . rtrim($path, '/') . '/';
     }
 
 

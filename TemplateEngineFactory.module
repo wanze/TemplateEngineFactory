@@ -14,13 +14,7 @@ require_once('TemplateEngineNull.php');
  *
  * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
- * @version 1.0.2
- *
- * ProcessWire 2.x
- * Copyright (C) 2014 by Ryan Cramer
- * Licensed under GNU/GPL v2, see LICENSE.TXT
- *
- * http://processwire.com
+ * @version 1.0.3
  *
  */
 class TemplateEngineFactory extends WireData implements Module, ConfigurableModule
@@ -267,7 +261,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     {
         return array(
             'title' => 'Template Engine Factory',
-            'version' => 102,
+            'version' => 103,
             'author' => 'Stefan Wanzenried',
             'summary' => 'This module aims to separate logic from markup.' .
                 'Turns ProcessWire templates into controllers which can interact over a new API ' .

@@ -6,11 +6,6 @@ require_once('TemplateEngine.php');
  *
  * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
  *
- * ProcessWire 2.x
- * Copyright (C) 2014 by Ryan Cramer
- * Licensed under GNU/GPL v2, see LICENSE.TXT
- *
- * http://processwire.com
  */
 
 class TemplateEngineNull extends TemplateEngine
