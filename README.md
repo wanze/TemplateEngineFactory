@@ -6,6 +6,7 @@ ProcessWire module helping to separate logic from markup. It turns ProcessWire t
 * **ProcessWire** Default engine using the class *TemplateFile* of ProcessWire. This engine ships with this module.
 * **Smarty** See: https://github.com/wanze/TemplateEngineSmarty
 * **Twig** See: https://github.com/wanze/TemplateEngineTwig
+* **Jade** See: https://github.com/dreerr/TemplateEngineJade
 
 ##Installation
 Install the module just like any other ProcessWire module. Check out the following guide: http://modules.processwire.com/install-uninstall/
