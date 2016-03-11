@@ -31,6 +31,14 @@ class TemplateEngineNull extends TemplateEngine
 
 
     /**
+     * Set multiple key/value pairs to the template
+     *
+     * @param array $pairs
+     */
+    public function setMultiple($pairs = array()) {}
+
+
+    /**
      * Render markup from template file
      *
      * @return mixed

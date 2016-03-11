@@ -83,6 +83,18 @@ abstract class TemplateEngine extends Wire
         $this->set($key, $value);
     }
 
+    /**
+     * @param array $pairs
+     */
+    public function __setMultiple($pairs = array())
+    {
+      if (is_array($pairs)) {
+        foreach ($pairs as $key => $value) {
+          $this->template->set($key, $value);
+        }
+      }
+    }
+
 
     /**
      * Set a key/value pair to the template engine
@@ -91,6 +103,14 @@ abstract class TemplateEngine extends Wire
      * @param $value
      */
     abstract public function set($key, $value);
+
+
+    /**
+     * Set multiple key/value pairs to the template engine
+     *
+     * @param array $pairs
+     */
+    abstract public function setMultiple($pairs = array());
 
 
     /**

@@ -1,6 +1,7 @@
 <?php
 require_once('TemplateEngine.php');
 
+
 /**
  * TemplateEngineProcesswire
  *
@@ -12,10 +13,10 @@ require_once('TemplateEngine.php');
 class TemplateEngineProcesswire extends TemplateEngine implements Module, ConfigurableModule
 {
 
-    /**
-     * @var TemplateFile
-     */
-    protected $template;
+   /**
+    * @var \TemplateFile $template
+    */
+   protected static $template;
 
 
     /**
@@ -57,6 +58,21 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
     public function set($key, $value)
     {
         $this->template->set($key, $value);
+    }
+
+
+    /**
+     * Set multiple key/value pairs to the template
+     *
+     * @param array $pairs
+     */
+    public function setMultiple($pairs = array())
+    {
+      if (is_array($pairs)) {
+        foreach ($pairs as $key => $value) {
+          $this->template->set($key, $value);
+        }
+      }
     }
 
 
