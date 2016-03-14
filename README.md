@@ -32,7 +32,6 @@ For each controller that is outputting markup, a corresponding template file sho
 Depending on the setting "Global template file" of the activated engine, the factory tries to load the template file of the current page's controller or the global template file. If a template file is found, an instance of it is accessible over the API variable. If no template file is found, the factory assumes that the controller does not output markup over the template engine. In this case, the hook to modify the behaviour of Page::render() is not attached - everything works "normal".
 
 The following example uses the ProcessWire template engine:
-
 ```php
 // In controller file: /site/templates/home.php
 
@@ -53,7 +52,6 @@ $view->setMultiple(array(
 ));
 ```
 In the example above, some logic is processed if a form was sent. Note that there is no markup generated, because this should now be done by the corresponding template file! Over the new API variable `$view`, key/value pairs are passed to the template. Here is an example how the template file could look like:
-
 ```php
 // In template file: /site/templates/view/home.php
 
@@ -69,7 +67,6 @@ In the example above, some logic is processed if a form was sent. Note that ther
 <?php endif; ?>
 ```
 Assume there is installed the module "TemplateEngineSmarty" and Smarty is chosen as the active template engine. The template file could look like this:
-
 ```php
 // In template file: /site/templates/smarty/home.tpl
 
@@ -88,7 +85,6 @@ The introduced API variable acts as a gateway to the active template engine. Thi
 
 ### Load and output markup of other template files
 Use the "TemplateEngineFactory" module to load any template file and output it's markup:
-
 ```php
 // In controller file: /site/templates/product.php
 

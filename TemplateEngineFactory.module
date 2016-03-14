@@ -104,7 +104,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         }
 
         $context = array_slice($event->arguments(), 1, null, false);
-        $engine = $this->getInstanceById($this->get('engine'), $chunkFile, true, true);
+        $engine = $this->getInstanceById($this->get('engine'), $chunkFile, true);
         if (is_null($engine)) return; // template file is missing
 
         $chunkBaseFile = $this->config->paths->templates . $chunkFile . '.' . $this->config->templateExtension;
@@ -224,7 +224,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      * @return TemplateEngine|null
      * @throws WireException
      */
-    public function getInstanceById($class, $filename = '', $as_api_var=false, $chunk=false)
+    public function getInstanceById($class, $filename = '', $as_api_var=false)
     {
         $installed = $this->getInstalledEngines();
         if (!in_array($class, array_keys($installed))) {
