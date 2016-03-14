@@ -86,22 +86,30 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     /**
      * Hook callback for Page::renderChunk
      *
-     * This method as added as a hook to each \Page instance.
+     * This method is added as a hook to each \Page instance.
      * The first argument passed must be the path to the chunk file render
-     * (relative to wire('config')->paths->templates).
+     * (relative to wire('config')->paths->templates)
      *
-     * You may pass an arbitrary amount of additional arguments which will
-     * be passed as contextual data to the chunk data provider.
+     * You may pass an array of additional arguments as a second argument
+     * which will be passed as contextual data to the chunk
      *
      * @param HookEvent $event
-     * @see \nw\DataProviders\ChunkDataProvider
      */
     public function renderChunk(HookEvent $event) {
         $chunkFile = $event->arguments(0);
+        // remove file extension if exists
+        $pathInfo = pathinfo($chunkFile);
+        if (array_key_exists('extension', $pathInfo)) {
+          $chunkFile = $pathInfo['dirname'] . '/' . pathinfo($chunkFile, PATHINFO_FILENAME);
+        }
+
         $context = array_slice($event->arguments(), 1, null, false);
         $engine = $this->getInstanceById($this->get('engine'), $chunkFile, true, true);
+        if (is_null($engine)) return; // template file is missing
 
-        $tplFile = new \ProcessWire\TemplateFile($this->config->paths->templates . $chunkFile . '.' . $this->config->templateExtension);
+        $chunkBaseFile = $this->config->paths->templates . $chunkFile . '.' . $this->config->templateExtension;
+        if (!file_exists($chunkBaseFile)) return;
+        $tplFile = new \ProcessWire\TemplateFile($chunkBaseFile);
         if (is_array($event->arguments(1))) {
           foreach ($event->arguments(1) as $key => $value) $tplFile->$key = $value;
         }
