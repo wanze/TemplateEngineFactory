@@ -75,11 +75,48 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         }
         $this->wire($this->get('api_var'), $engine);
         $this->addHookAfter('Page::render', $this, 'hookRender');
+        $this->addHook('Page::renderChunk', $this, 'renderChunk');
         // If the engine supports caching, attach hooks to clear the cache when saving/deleting pages
         if (in_array('TemplateEngineCache', class_implements($engine))) {
             $this->pages->addHookAfter('save', $this, 'hookClearCache');
             $this->pages->addHookAfter('delete', $this, 'hookClearCache');
         }
+    }
+
+    /**
+     * Hook callback for Page::renderChunk
+     *
+     * This method is added as a hook to each \Page instance.
+     * The first argument passed must be the path to the chunk file render
+     * (relative to wire('config')->paths->templates)
+     *
+     * You may pass an array of additional arguments as a second argument
+     * which will be passed as contextual data to the chunk
+     *
+     * @param HookEvent $event
+     */
+    public function renderChunk(HookEvent $event) {
+        $chunkFile = $event->arguments(0);
+        // remove file extension if exists
+        $pathInfo = pathinfo($chunkFile);
+        if (array_key_exists('extension', $pathInfo)) {
+          $chunkFile = $pathInfo['dirname'] . '/' . pathinfo($chunkFile, PATHINFO_FILENAME);
+        }
+
+        $context = array_slice($event->arguments(), 1, null, false);
+        $engine = $this->getInstanceById($this->get('engine'), $chunkFile, true);
+        if (is_null($engine)) return; // template file is missing
+
+        $chunkBaseFile = $this->config->paths->templates . $chunkFile . '.' . $this->config->templateExtension;
+        if (!file_exists($chunkBaseFile)) return;
+        $tplFile = new \ProcessWire\TemplateFile($chunkBaseFile);
+        if (is_array($event->arguments(1))) {
+          foreach ($event->arguments(1) as $key => $value) $tplFile->$key = $value;
+        }
+        echo $tplFile->render();
+
+        $view = $this->wire('view', $engine);
+        echo $view->render();
     }
 
 
@@ -206,8 +243,9 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         }
         $engine->initEngine();
         if ($as_api_var) {
-            $this->wire($this->get('api_var'), $engine);
+          $this->wire($this->get('api_var'), $engine);
         }
+
         return $engine;
     }
 

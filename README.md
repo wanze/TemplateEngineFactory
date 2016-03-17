@@ -43,6 +43,13 @@ if ($input->post->form) {
 $view->set('foo', 'bar');
 $view->set('show_nav', true);
 $view->set('nav_pages', $pages->get('/')->children());
+
+// Or:
+$view->setMultiple(array(
+  'foo' => 'bar',
+  'show_nav' => true,
+  'nav_pages' => $pages->get('/')->children()
+));
 ```
 In the example above, some logic is processed if a form was sent. Note that there is no markup generated, because this should now be done by the corresponding template file! Over the new API variable `$view`, key/value pairs are passed to the template. Here is an example how the template file could look like:
 ```php
@@ -86,9 +93,69 @@ $chunk = $factory->load('chunks/product_chunk.tpl');
 $chunk->set('product_title', $page->title);
 $chunk->set('date', date('d.m.Y'));
 $chunk_output = $chunk->render();
-$view->set('chunk', $chunk_output);
+$view->set('chunk', $chunk_output); // if you want to set more than a single value, use setMultiple()
 ```
 The example above loads a template file called "product_chunk.tpl" and passes some variables. Calling "render()" returns the rendered markup of the template file.
+
+### Output markup of a chunk
+
+A chunk is a reusable part of a template. That means you can use it multiple times between different template files.
+Furthermore you could put contextual arguments as an array like `array('item' => $item, 'hello' => 'world')` into it.
+
+```php
+// in template file: /site/templates/view/template.tpl
+<?php foreach ($nav_pages as $p): ?>
+  <?php $page->renderChunk('chunks/nav-item', array('page' => $p)); ?>
+<?php endforeach; ?>
+```
+
+Assume there is installed the module "TemplateEngineTwig" and Twig is chosen as the active template engine. The template file could look like this:
+
+```html
+// in template file: /site/templates/view/template.twig
+{% for p in nav_pages %}
+  {% include 'chunks/nav-item', { 'page': p } %}
+{% endfor %}
+```
+
+To render this chunk there must exists two related files. Assuming `chunks/nav-item` this would be:
+
+* /site/templates/chunks/nav-item.php
+* /site/templates/view/chunks/nav-item.tpl
+
+If you pass contextual arguments, you can access them inside the `.php`-file by using `$this->key`.
+As you're used to, you can pass key/value pairs to the template using the new API variable `$view`.
+
+#### Example: How to use a chunk
+
+*In template file: /site/templates/view/template.twig*
+```php
+<?php foreach ($nav_pages as $p): ?>
+  <?php $page->renderChunk('chunks/nav-item', array('page' => $p)); ?>
+<?php endforeach; ?>
+```
+
+*/site/templates/chunks/nav-item.php*
+```php
+<?php namespace ProcessWire;
+
+$foo = 'do some logic // something with the contextual data';
+$author = $this->page->createdUser;
+
+$view->setMultiple( array(
+  'author' => $author,
+  'item' => $this->page,
+  'foo' => $foo
+));
+```
+
+*/site/templates/view/chunks/nav-item.tpl*
+```php
+Author: <?= $author ?> <br />
+<a href="<?= $item->url ?>" title="<?= $foo ?>">
+  <?= $item->title ?>
+</a>
+```
 
 ## Important: Caching
 Since former ProcessWire templates are now controllers that generally do not output any markup, the ProcessWire template cache should *NOT* be active. Deactivate cache in the settings of your template under the section "Cache".
@@ -124,6 +191,11 @@ class TemplateEngineMyEngine extends TemplateEngine implements Module, Configura
   public function set($key, $value)
   {
     // Pass a key/value pair to your engine
+  }
+
+  public function setMultiple($pairs = array())
+  {
+    // Pass multiple key/value pairs to your engine
   }
   
   public function render()
