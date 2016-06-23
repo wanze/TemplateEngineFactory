@@ -44,8 +44,8 @@ $view->set('foo', 'bar');
 $view->set('show_nav', true);
 $view->set('nav_pages', $pages->get('/')->children());
 
-// Or:
-$view->setMultiple(array(
+// Or pass multiple values to the view with setArray
+$view->setArray(array(
   'foo' => 'bar',
   'show_nav' => true,
   'nav_pages' => $pages->get('/')->children()
@@ -87,74 +87,28 @@ The introduced API variable acts as a gateway to the active template engine. Thi
 Use the "TemplateEngineFactory" module to load any template file and output it's markup:
 ```php
 // In controller file: /site/templates/product.php
-
 $factory = $modules->get('TemplateEngineFactory');
-$chunk = $factory->load('chunks/product_chunk.tpl');
-$chunk->set('product_title', $page->title);
-$chunk->set('date', date('d.m.Y'));
-$chunk_output = $chunk->render();
-$view->set('chunk', $chunk_output); // if you want to set more than a single value, use setMultiple()
+$partial = $factory->load('chunks/product_partial.tpl');
+$partial->set('product_title', $page->title);
+$partial->set('date', date('d.m.Y'));
+$partial_output = $partial->render();
+$view->set('partial', $partial_output);
 ```
-The example above loads a template file called "product_chunk.tpl" and passes some variables. Calling "render()" returns the rendered markup of the template file.
+The example above loads a template file called "product_partial.tpl" and passes some variables. Calling `render()` returns the rendered markup of the template file.
 
-### Output markup of a chunk
+**NOTE**: Versions >= 1.1.0 of this module provide an API variable `$factory` by default, so the step to get the module is not needed anymore.
 
-A chunk is a reusable part of a template. That means you can use it multiple times between different template files.
-Furthermore you could put contextual arguments as an array like `array('item' => $item, 'hello' => 'world')` into it.
+### Chunks
 
+A chunk represents a reusable part of a template. It consists of a PHP file containing some logic and a template file which is responsible to render the chunk.
 ```php
-// in template file: /site/templates/view/template.tpl
-<?php foreach ($nav_pages as $p): ?>
-  <?php $page->renderChunk('chunks/nav-item', array('page' => $p)); ?>
-<?php endforeach; ?>
-```
-
-Assume there is installed the module "TemplateEngineTwig" and Twig is chosen as the active template engine. The template file could look like this:
-
-```html
-// in template file: /site/templates/view/template.twig
-{% for p in nav_pages %}
-  {% include 'chunks/nav-item', { 'page': p } %}
-{% endfor %}
-```
-
-To render this chunk there must exists two related files. Assuming `chunks/nav-item` this would be:
-
-* /site/templates/chunks/nav-item.php
-* /site/templates/view/chunks/nav-item.tpl
-
-If you pass contextual arguments, you can access them inside the `.php`-file by using `$this->key`.
-As you're used to, you can pass key/value pairs to the template using the new API variable `$view`.
-
-#### Example: How to use a chunk
-
-*In template file: /site/templates/view/template.twig*
-```php
-<?php foreach ($nav_pages as $p): ?>
-  <?php $page->renderChunk('chunks/nav-item', array('page' => $p)); ?>
-<?php endforeach; ?>
-```
-
-*/site/templates/chunks/nav-item.php*
-```php
-<?php namespace ProcessWire;
-
-$foo = 'do some logic // something with the contextual data';
-$author = $this->page->createdUser;
-
-$view->setMultiple( array(
-  'author' => $author,
-  'item' => $this->page,
-  'foo' => $foo
-));
-```
-
-*/site/templates/view/chunks/nav-item.tpl*
-```php
-Author: <?= $author ?> <br />
-<a href="<?= $item->url ?>" title="<?= $foo ?>">
-  <?= $item->title ?>
-</a>
+// The path to the chunk is relative to site/templates without the php suffix
+$chunk = $factory->chunk('chunks/nav-item');
+// You can pass any variables to the chunk, they become available as locally scoped variables
+$chunk->active = true;
+$chunk->set('hidden', false);
+// Returns the markup from the associated template file (view) from the active TemplateEngine. By default, the chunk's template file is looked up at the same path as the chunk file, relative to the storage location of the active template engine, e.g. /site/templates/views/chunks/nav-item.tpl
+$chunk->render();
 ```
 
 ## Important: Caching
@@ -193,11 +147,6 @@ class TemplateEngineMyEngine extends TemplateEngine implements Module, Configura
     // Pass a key/value pair to your engine
   }
 
-  public function setMultiple($pairs = array())
-  {
-    // Pass multiple key/value pairs to your engine
-  }
-  
   public function render()
   {
     // Output the markup of the loaded template file

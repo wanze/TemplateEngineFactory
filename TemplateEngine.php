@@ -83,18 +83,6 @@ abstract class TemplateEngine extends Wire
         $this->set($key, $value);
     }
 
-    /**
-     * @param array $pairs
-     */
-    public function __setMultiple($pairs = array())
-    {
-      if (is_array($pairs)) {
-        foreach ($pairs as $key => $value) {
-          $this->template->set($key, $value);
-        }
-      }
-    }
-
 
     /**
      * Set a key/value pair to the template engine
@@ -106,11 +94,27 @@ abstract class TemplateEngine extends Wire
 
 
     /**
+     * Alias for setArray
+     *
+     * @param array $data
+     */
+    public function setMultiple($data = array())
+    {
+        $this->setArray($data);
+    }
+
+
+    /**
      * Set multiple key/value pairs to the template engine
      *
-     * @param array $pairs
+     * @param array $data
      */
-    abstract public function setMultiple($pairs = array());
+    public function setArray($data = array())
+    {
+        foreach ($data as $key => $value) {
+            $this->set($key, $value);
+        }
+    }
 
 
     /**
@@ -138,6 +142,7 @@ abstract class TemplateEngine extends Wire
      * ProcessWire does call this method and set config values from database
      * In our context, the config is loaded and available already in the constructor so just leave empty
      *
+     * @param array $data
      */
     public function setConfigData(array $data = array())
     {

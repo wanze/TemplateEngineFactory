@@ -12,10 +12,10 @@ require_once('TemplateEngine.php');
 class TemplateEngineProcesswire extends TemplateEngine implements Module, ConfigurableModule
 {
 
-   /**
-    * @var \TemplateFile $template
-    */
-   protected static $template;
+    /**
+     * @var TemplateFile
+     */
+    protected $template;
 
 
     /**
@@ -42,6 +42,7 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
     public static function getDefaultConfig()
     {
         $config = parent::getDefaultConfig();
+
         return array_merge($config, array(
             'template_files_suffix' => 'php',
         ));
@@ -57,21 +58,6 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
     public function set($key, $value)
     {
         $this->template->set($key, $value);
-    }
-
-
-    /**
-     * Set multiple key/value pairs to the template
-     *
-     * @param array $pairs
-     */
-    public function setMultiple($pairs = array())
-    {
-      if (is_array($pairs)) {
-        foreach ($pairs as $key => $value) {
-          $this->template->set($key, $value);
-        }
-      }
     }
 
 
@@ -121,6 +107,7 @@ class TemplateEngineProcesswire extends TemplateEngine implements Module, Config
     {
         $data = array_merge(self::getDefaultConfig(), $data);
         $wrapper = parent::getModuleConfigInputfields($data);
+
         return $wrapper;
     }
 

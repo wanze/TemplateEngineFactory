@@ -1,5 +1,6 @@
 <?php
-require_once('TemplateEngineNull.php');
+require_once(__DIR__ . '/TemplateEngineNull.php');
+require_once(__DIR__ . '/TemplateEngineChunk.php');
 
 /**
  * TemplateEngineFactory
@@ -10,12 +11,11 @@ require_once('TemplateEngineNull.php');
  * What this class does:
  * - Serves as factory to return instances of the current active TemplateEngine module, e.g. Smarty or Twig
  * - Provide an API variable, e.g. 'view' which can be used to interact with the template engine of current page's template
- * - Add hooks for rendering output over template engine and clear cache(s) when modifying pages
+ * - Adds hooks for rendering output over template engine and clear cache(s) when modifying pages
  *
  * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
- * @version 1.0.3
- *
+ * @version 1.1.0
  */
 class TemplateEngineFactory extends WireData implements Module, ConfigurableModule
 {
@@ -26,6 +26,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     protected static $default_config = array(
         'engine' => '',
         'api_var' => 'view',
+        'api_var_factory' => 'factory',
         'registered_engines' => array(),
         'active' => true,
     );
@@ -64,59 +65,40 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         if ($this->wire('page')->template->name == 'admin') {
             return;
         }
+        $this->wire($this->get('api_var_factory'), $this);
         if (!$this->get('engine')) {
             $this->wire($this->get('api_var'), new TemplateEngineNull());
+
             return;
         }
         $engine = $this->getInstanceById($this->get('engine'));
         if (is_null($engine)) {
             $this->wire($this->get('api_var'), new TemplateEngineNull());
+
             return;
         }
         $this->wire($this->get('api_var'), $engine);
         $this->addHookAfter('Page::render', $this, 'hookRender');
-        $this->addHook('Page::renderChunk', $this, 'renderChunk');
         // If the engine supports caching, attach hooks to clear the cache when saving/deleting pages
         if (in_array('TemplateEngineCache', class_implements($engine))) {
-            $this->pages->addHookAfter('save', $this, 'hookClearCache');
-            $this->pages->addHookAfter('delete', $this, 'hookClearCache');
+            $this->wire('pages')->addHookAfter('save', $this, 'hookClearCache');
+            $this->wire('pages')->addHookAfter('delete', $this, 'hookClearCache');
         }
     }
 
+
     /**
-     * Hook callback for Page::renderChunk
-     *
-     * This method is added as a hook to each \Page instance.
-     * The first argument passed must be the path to the chunk file render
-     * (relative to wire('config')->paths->templates)
-     *
-     * You may pass an array of additional arguments as a second argument
-     * which will be passed as contextual data to the chunk
-     *
-     * @param HookEvent $event
+     * @param string $chunk_file The chunk file to load, relative to site/templates/ without file extension
+     * @param array $params Additional parameters that are passed to the chunk
+     * @param string $template_file The template (view) that should be used to render the chunk
+     * @return TemplateEngineChunk
      */
-    public function renderChunk(HookEvent $event) {
-        $chunkFile = $event->arguments(0);
-        // remove file extension if exists
-        $pathInfo = pathinfo($chunkFile);
-        if (array_key_exists('extension', $pathInfo)) {
-          $chunkFile = $pathInfo['dirname'] . '/' . pathinfo($chunkFile, PATHINFO_FILENAME);
-        }
+    public function chunk($chunk_file, array $params = array(), $template_file = '')
+    {
+        $chunk = new TemplateEngineChunk($chunk_file, $template_file);
+        $chunk->setArray($params);
 
-        $context = array_slice($event->arguments(), 1, null, false);
-        $engine = $this->getInstanceById($this->get('engine'), $chunkFile, true);
-        if (is_null($engine)) return; // template file is missing
-
-        $chunkBaseFile = $this->config->paths->templates . $chunkFile . '.' . $this->config->templateExtension;
-        if (!file_exists($chunkBaseFile)) return;
-        $tplFile = new \ProcessWire\TemplateFile($chunkBaseFile);
-        if (is_array($event->arguments(1))) {
-          foreach ($event->arguments(1) as $key => $value) $tplFile->$key = $value;
-        }
-        echo $tplFile->render();
-
-        $view = $this->wire('view', $engine);
-        echo $view->render();
+        return $chunk;
     }
 
 
@@ -209,6 +191,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
                 $this->installed_engines[$class] = $title;
             }
         }
+
         return $this->installed_engines;
     }
 
@@ -220,11 +203,11 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      *
      * @param string $class Class name of engine
      * @param string $filename Filename of template file (with or without suffix)
-     * @param bool $as_api_var Set to true to interact with the given template file over the API variable
+     * @param bool $as_api_var Set to true to interact with the given template file over the $view API variable
      * @return TemplateEngine|null
      * @throws WireException
      */
-    public function getInstanceById($class, $filename = '', $as_api_var=false)
+    public function getInstanceById($class, $filename = '', $as_api_var = false)
     {
         $installed = $this->getInstalledEngines();
         if (!in_array($class, array_keys($installed))) {
@@ -243,7 +226,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         }
         $engine->initEngine();
         if ($as_api_var) {
-          $this->wire($this->get('api_var'), $engine);
+            $this->wire($this->get('api_var'), $engine);
         }
 
         return $engine;
@@ -257,7 +240,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      * @param bool $as_api_var Set to true to interact with the given template file over the API variable
      * @return TemplateEngine|null
      */
-    public function getInstanceByFilename($filename, $as_api_var=false)
+    public function getInstanceByFilename($filename, $as_api_var = false)
     {
         return $this->getInstanceById($this->get('engine'), $filename, $as_api_var);
     }
@@ -268,7 +251,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      * @param bool $as_api_var Set to true to interact with the given template file over the API variable
      * @return TemplateEngine|null
      */
-    public function instance($filename, $as_api_var=false)
+    public function instance($filename, $as_api_var = false)
     {
         return $this->getInstanceByFilename($filename, $as_api_var);
     }
@@ -279,7 +262,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      * @param bool $as_api_var Set to true to interact with the given template file over the API variable
      * @return null|TemplateEngine
      */
-    public function load($filename, $as_api_var=false)
+    public function load($filename, $as_api_var = false)
     {
         return $this->getInstanceByFilename($filename, $as_api_var);
     }
@@ -299,7 +282,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     {
         return array(
             'title' => 'Template Engine Factory',
-            'version' => 103,
+            'version' => 110,
             'author' => 'Stefan Wanzenried',
             'summary' => 'This module aims to separate logic from markup.' .
                 'Turns ProcessWire templates into controllers which can interact over a new API ' .
@@ -337,10 +320,19 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
 
         /** @var InputfieldText $f */
         $f = $modules->get('InputfieldText');
-        $f->label = __('API variable');
+        $f->label = __('API variable to interact with the view');
         $f->description = __('Enter the name of the API variable with which you can interact with the current active template');
         $f->name = 'api_var';
         $f->value = $data['api_var'];
+        $f->required = 1;
+        $wrapper->append($f);
+
+        /** @var InputfieldText $f */
+        $f = $modules->get('InputfieldText');
+        $f->label = __('API variable for the TemplateEngineFactory module');
+        $f->description = __('Enter the name of the API variable that returns a singleton of this module, to load chunks and views');
+        $f->name = 'api_var_factory';
+        $f->value = $data['api_var_factory'];
         $f->required = 1;
         $wrapper->append($f);
 
