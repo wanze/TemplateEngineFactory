@@ -121,7 +121,7 @@ class TemplateEngineChunk extends WireData
         $this->template_file = $template_file;
         $this->view = $this->wire('factory')->load($template_file);
         if ($this->view === null) {
-            throw new WireException("View for chunk {$this->chunk_file} does not exist, looked at '$template_file'");
+            throw new WireException("View for chunk {$this->chunk_file} does not exist");
         }
 
         return $this;
