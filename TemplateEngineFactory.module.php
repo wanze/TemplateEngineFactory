@@ -78,7 +78,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
             return;
         }
         $this->wire($this->get('api_var'), $engine);
-        $this->addHookAfter('Page::render', $this, 'hookRender', array('priority'=>'99'));
+        $this->addHookAfter('Page::render', $this, 'hookRender', array('priority'=>'100.01'));
         // If the engine supports caching, attach hooks to clear the cache when saving/deleting pages
         if (in_array('TemplateEngineCache', class_implements($engine))) {
             $this->wire('pages')->addHookAfter('save', $this, 'hookClearCache');
