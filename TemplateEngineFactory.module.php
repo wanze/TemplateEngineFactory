@@ -15,7 +15,7 @@ require_once(__DIR__ . '/TemplateEngineChunk.php');
  *
  * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
- * @version 1.1.0
+ * @version 1.1.1
  */
 class TemplateEngineFactory extends WireData implements Module, ConfigurableModule
 {
@@ -78,7 +78,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
             return;
         }
         $this->wire($this->get('api_var'), $engine);
-        $this->addHookAfter('Page::render', $this, 'hookRender');
+        $this->addHookAfter('Page::render', $this, 'hookRender', array('priority' => '100.01'));
         // If the engine supports caching, attach hooks to clear the cache when saving/deleting pages
         if (in_array('TemplateEngineCache', class_implements($engine))) {
             $this->wire('pages')->addHookAfter('save', $this, 'hookClearCache');
@@ -282,7 +282,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     {
         return array(
             'title' => 'Template Engine Factory',
-            'version' => 110,
+            'version' => 111,
             'author' => 'Stefan Wanzenried',
             'summary' => 'This module aims to separate logic from markup.' .
                 'Turns ProcessWire templates into controllers which can interact over a new API ' .
