@@ -15,7 +15,7 @@ require_once(__DIR__ . '/TemplateEngineChunk.php');
  *
  * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
- * @version 1.1.1
+ * @version 1.1.2
  */
 class TemplateEngineFactory extends WireData implements Module, ConfigurableModule
 {
@@ -23,7 +23,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     /**
      * @var array
      */
-    protected static $default_config = array(
+    protected static $defaultConfig = array(
         'engine' => '',
         'api_var' => 'view',
         'api_var_factory' => 'factory',
@@ -34,12 +34,12 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     /**
      * @var array
      */
-    protected $installed_engines;
+    protected $installedEngines;
 
 
     public function __construct()
     {
-        foreach (self::$default_config as $k => $v) {
+        foreach (self::$defaultConfig as $k => $v) {
             $this->set($k, $v);
         }
     }
@@ -79,6 +79,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         }
         $this->wire($this->get('api_var'), $engine);
         $this->addHookAfter('Page::render', $this, 'hookRender', array('priority' => '100.01'));
+        $this->addHookBefore('ProcessPageView::pageNotFound', $this, 'hookPageNotFound');
         // If the engine supports caching, attach hooks to clear the cache when saving/deleting pages
         if (in_array('TemplateEngineCache', class_implements($engine))) {
             $this->wire('pages')->addHookAfter('save', $this, 'hookClearCache');
@@ -91,6 +92,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      * @param string $chunk_file The chunk file to load, relative to site/templates/ without file extension
      * @param array $params Additional parameters that are passed to the chunk
      * @param string $template_file The template (view) that should be used to render the chunk
+     * @throws WireException
      * @return TemplateEngineChunk
      */
     public function chunk($chunk_file, array $params = array(), $template_file = '')
@@ -117,6 +119,27 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         /** @var TemplateEngine $engine */
         $engine = $this->wire($this->get('api_var'));
         $event->return = $engine->render();
+    }
+
+
+    /**
+     * Hook executed before ProcessPageView::pageNotFound().
+     * If controllers manually throw a Wire404Exception() we need to make sure that
+     * the current active template engine uses the correct $page object.
+     *
+     * @param HookEvent $event
+     */
+    public function hookPageNotFound(HookEvent $event)
+    {
+        $pageNotFoundId = $this->wire('config')->http404PageID;
+        if (!$pageNotFoundId) {
+            return;
+        }
+        $page = $this->wire('pages')->get($pageNotFoundId);
+        if (!$page->id) {
+            return;
+        }
+        $this->instance($page->template->name, true);
     }
 
 
@@ -182,17 +205,17 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      */
     public function getInstalledEngines()
     {
-        if (is_array($this->installed_engines)) {
-            return $this->installed_engines;
+        if (is_array($this->installedEngines)) {
+            return $this->installedEngines;
         }
-        $this->installed_engines = array();
+        $this->installedEngines = array();
         foreach ($this->get('registered_engines') as $class => $title) {
             if ($this->wire('modules')->isInstalled($class)) {
-                $this->installed_engines[$class] = $title;
+                $this->installedEngines[$class] = $title;
             }
         }
 
-        return $this->installed_engines;
+        return $this->installedEngines;
     }
 
 
@@ -203,11 +226,11 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      *
      * @param string $class Class name of engine
      * @param string $filename Filename of template file (with or without suffix)
-     * @param bool $as_api_var Set to true to interact with the given template file over the $view API variable
-     * @return TemplateEngine|null
+     * @param bool $setApiVariable Set to true to interact with the given template file over the $view API variable
      * @throws WireException
+     * @return TemplateEngine|null
      */
-    public function getInstanceById($class, $filename = '', $as_api_var = false)
+    public function getInstanceById($class, $filename = '', $setApiVariable = false)
     {
         $installed = $this->getInstalledEngines();
         if (!in_array($class, array_keys($installed))) {
@@ -217,15 +240,15 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         $engine = new $class($filename);
         if (!$filename) {
             // No filename given, either use global template file or template file of current controller
-            $global_template = $engine->getConfig('global_template');
-            $template = ($global_template) ? $global_template : $this->wire('page')->template->name;
+            $globalTemplate = $engine->getConfig('global_template');
+            $template = ($globalTemplate) ? $globalTemplate : $this->wire('page')->template->name;
             $engine->setFilename($template);
         }
         if (!is_file($engine->getTemplatesPath() . $engine->getFilename())) {
             return null;
         }
         $engine->initEngine();
-        if ($as_api_var) {
+        if ($setApiVariable) {
             $this->wire($this->get('api_var'), $engine);
         }
 
@@ -237,34 +260,37 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      * Get an instance of the current active TemplateEngine module with a given filename
      *
      * @param string $filename Filename of template file (with or without suffix)
-     * @param bool $as_api_var Set to true to interact with the given template file over the API variable
+     * @param bool $setApiVariable Set to true to interact with the given template file over the API variable
+     * @throws WireException
      * @return TemplateEngine|null
      */
-    public function getInstanceByFilename($filename, $as_api_var = false)
+    public function getInstanceByFilename($filename, $setApiVariable = false)
     {
-        return $this->getInstanceById($this->get('engine'), $filename, $as_api_var);
+        return $this->getInstanceById($this->get('engine'), $filename, $setApiVariable);
     }
 
 
     /**
      * @param string $filename Filename of template file (with or without suffix)
-     * @param bool $as_api_var Set to true to interact with the given template file over the API variable
+     * @param bool $setApiVariable Set to true to interact with the given template file over the API variable
+     * @throws WireException
      * @return TemplateEngine|null
      */
-    public function instance($filename, $as_api_var = false)
+    public function instance($filename, $setApiVariable = false)
     {
-        return $this->getInstanceByFilename($filename, $as_api_var);
+        return $this->getInstanceByFilename($filename, $setApiVariable);
     }
 
 
     /**
      * @param string $filename Filename of template file (with or without suffix)
-     * @param bool $as_api_var Set to true to interact with the given template file over the API variable
+     * @param bool $setApiVariable Set to true to interact with the given template file over the API variable
+     * @throws WireException
      * @return null|TemplateEngine
      */
-    public function load($filename, $as_api_var = false)
+    public function load($filename, $setApiVariable = false)
     {
-        return $this->getInstanceByFilename($filename, $as_api_var);
+        return $this->getInstanceByFilename($filename, $setApiVariable);
     }
 
 
@@ -282,11 +308,9 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     {
         return array(
             'title' => 'Template Engine Factory',
-            'version' => 111,
+            'version' => 112,
             'author' => 'Stefan Wanzenried',
-            'summary' => 'This module aims to separate logic from markup.' .
-                'Turns ProcessWire templates into controllers which can interact over a new API ' .
-                'variable to template engines like the native ProcessWire TemplateFile class or Smarty/Twig.',
+            'summary' => 'Provides ProcessWire integration for various template engines such as Twig or Smarty. ',
             'href' => 'https://processwire.com/talk/topic/6833-module-templateenginefactory/',
             'singular' => true,
             'autoload' => true,
@@ -305,7 +329,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     {
         $modules = wire('modules');
         $wrapper = new InputfieldWrapper();
-        $data = array_merge(self::$default_config, $data);
+        $data = array_merge(self::$defaultConfig, $data);
 
         /** @var InputfieldSelect $f */
         $engines = $modules->get('TemplateEngineFactory')->getInstalledEngines();
