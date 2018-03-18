@@ -28,33 +28,31 @@ class TemplateEngineChunk extends WireData
     /**
      * @var string
      */
-    protected $chunk_file;
+    protected $chunkFile;
 
     /**
      * @var
      */
-    protected $template_file;
+    protected $templateFile;
 
 
     /**
-     * @param string $chunk_file Path to the chunk file to load, relative to site/templates/ without suffix
-     * @param string $template_file Path to the corresponding template file (view) relative to the path where the engine stores its templates
+     * @param string $chunkFile Path to the chunk file to load, relative to site/templates/ without suffix
+     * @param string $templateFile Path to the corresponding template file (view) relative to the path where the engine stores its templates
      * @throws WireException
      */
-    public function __construct($chunk_file, $template_file = '')
+    public function __construct($chunkFile, $templateFile = '')
     {
-        $this->setChunkFile($chunk_file);
-        $this->setTemplateFile($template_file);
+        $this->setChunkFile($chunkFile);
+        $this->setTemplateFile($templateFile);
     }
 
 
     /**
-     * Set a value
-     *
      * @param string $key
      * @param mixed $value
+     * @throws WireException
      * @return $this
-     *
      */
     public function set($key, $value)
     {
@@ -95,33 +93,33 @@ class TemplateEngineChunk extends WireData
 
 
     /**
-     * @param string $chunk_file The chunk file to load, relative to site/templates/ without suffix
+     * @param string $chunkFile The chunk file to load, relative to site/templates/ without suffix
      * @throws WireException
      * @return $this
      */
-    public function setChunkFile($chunk_file)
+    public function setChunkFile($chunkFile)
     {
-        if (!is_file($this->getChunkPath($chunk_file))) {
-            throw new WireException("Chunk file does not exist: '{$chunk_file}'");
+        if (!is_file($this->getChunkPath($chunkFile))) {
+            throw new WireException("Chunk file does not exist: '{$chunkFile}'");
         }
-        $this->chunk_file = $chunk_file;
+        $this->chunkFile = $chunkFile;
 
         return $this;
     }
 
 
     /**
-     * @param string $template_file The template file (view) that should be used to render this chunk
+     * @param string $templateFile The template file (view) that should be used to render this chunk
      * @throws WireException
      * @return $this
      */
-    public function setTemplateFile($template_file)
+    public function setTemplateFile($templateFile)
     {
-        $template_file = ($template_file) ? $template_file : $this->chunk_file;
-        $this->template_file = $template_file;
-        $this->view = $this->wire('factory')->load($template_file);
+        $templateFile = ($templateFile) ? $templateFile : $this->chunkFile;
+        $this->templateFile = $templateFile;
+        $this->view = $this->wire('factory')->load($templateFile);
         if ($this->view === null) {
-            throw new WireException("View for chunk {$this->chunk_file} does not exist");
+            throw new WireException("View for chunk {$this->chunkFile} does not exist");
         }
 
         return $this;
@@ -135,7 +133,7 @@ class TemplateEngineChunk extends WireData
      */
     protected function ___getChunk()
     {
-        $chunk = new TemplateFile($this->getChunkPath($this->chunk_file));
+        $chunk = new TemplateFile($this->getChunkPath($this->chunkFile));
         $chunk->setArray($this->getArray());
 
         return $chunk;
@@ -143,12 +141,12 @@ class TemplateEngineChunk extends WireData
 
 
     /**
-     * @param string $chunk_file
+     * @param string $chunkFile
      * @return string
      */
-    protected function getChunkPath($chunk_file)
+    protected function getChunkPath($chunkFile)
     {
-        return $this->wire('config')->paths->templates . $chunk_file . '.' . $this->wire('config')->templateExtension;
+        return $this->wire('config')->paths->templates . $chunkFile . '.' . $this->wire('config')->templateExtension;
     }
 
 }

@@ -10,41 +10,35 @@
  * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
  */
-
 interface TemplateEngineCache {
 
     /**
-     * Get cached output of template or null if no cache exists
-     *
+     * Get cached output of template or null if no cache exists.
      * @return string|null
      */
     public function getCache();
 
 
     /**
-     * Cache output of current template
-     *
+     * Cache output of current template.
      */
     public function storeCache();
 
 
     /**
-     * Clear cache of current template
-     *
+     * Clear cache of current template.
      */
     public function clearCache();
 
 
     /**
-     * Clear cache completely, also cache of all other templates
-     *
+     * Clear cache completely, also cache of all other templates.
      */
     public function clearAllCache();
 
 
     /**
-     * Returns true if a cache exists for the template
-     *
+     * Returns true if a cache exists for the template.
      * @return bool
      */
     public function isCached();

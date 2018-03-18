@@ -1,7 +1,7 @@
 {
     "name": "wanze/template-engine-factory",
     "type": "pw-module",
-    "description": "ProcessWire module helping to separate logic from markup",
+    "description": "Provides ProcessWire integration for various template engines such as Twig or Smarty.",
     "keywords": [ "template-engine", "processwire"],
     "homepage": "https://github.com/wanze/TemplateEngineFactory",
     "license": "GPL-2.0",
