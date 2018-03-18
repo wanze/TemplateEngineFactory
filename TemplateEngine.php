@@ -1,5 +1,7 @@
 <?php
 
+require_once(__DIR__ . '/TemplateEngineInterface.php');
+
 /**
  * TemplateEngine
  *
@@ -9,25 +11,25 @@
  * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
  *
  */
-abstract class TemplateEngine extends Wire
+abstract class TemplateEngine extends Wire implements TemplateEngineInterface
 {
 
     /**
-     * Stores module configuration per implemented TemplateEngine
+     * Stores module configuration per implemented TemplateEngine.
      *
      * @var array
      */
-    protected static $loaded_config = array();
+    protected static $loadedConfig = array();
 
     /**
-     * Filename of template file
+     * Filename of template file.
      *
      * @var string
      */
     protected $filename = '';
 
     /**
-     * Instance to the TemplateEngineFactory module
+     * Instance of the TemplateEngineFactory module.
      *
      * @var TemplateEngineFactory
      */
@@ -69,12 +71,8 @@ abstract class TemplateEngine extends Wire
 
 
     /**
-     * Init engine, derived classes must use this method to setup the engine
-     */
-    abstract public function initEngine();
-
-
-    /**
+     * Magic setter to pass variables to the template engine.
+     *
      * @param $key
      * @param $value
      */
@@ -84,17 +82,9 @@ abstract class TemplateEngine extends Wire
     }
 
 
-    /**
-     * Set a key/value pair to the template engine
-     *
-     * @param $key
-     * @param $value
-     */
-    abstract public function set($key, $value);
-
 
     /**
-     * Alias for setArray
+     * Alias for setArray.
      *
      * @param array $data
      */
@@ -105,7 +95,7 @@ abstract class TemplateEngine extends Wire
 
 
     /**
-     * Set multiple key/value pairs to the template engine
+     * Set multiple key/value pairs to the template engine.
      *
      * @param array $data
      */
@@ -118,14 +108,9 @@ abstract class TemplateEngine extends Wire
 
 
     /**
-     * Render markup from template engine
+     * Return the default configuration for all template engines. Derived classes should
+     * overwrite this method and provide their own configuration options.
      *
-     * @return mixed
-     */
-    abstract public function render();
-
-
-    /**
      * @return array
      */
     public static function getDefaultConfig()
@@ -139,8 +124,8 @@ abstract class TemplateEngine extends Wire
 
 
     /**
-     * ProcessWire does call this method and set config values from database
-     * In our context, the config is loaded and available already in the constructor so just leave empty
+     * ProcessWire does call this method and set config values from database.
+     * In our context, the config is loaded and available already in the constructor so just leave empty.
      *
      * @param array $data
      */
@@ -150,7 +135,7 @@ abstract class TemplateEngine extends Wire
 
 
     /**
-     * Return config all implemented engines share in common
+     * Return config all implemented engines share in common.
      *
      * @param array $data
      * @return InputfieldWrapper
@@ -188,26 +173,26 @@ abstract class TemplateEngine extends Wire
 
 
     /**
-     * Get a config value
+     * Get a config value.
      *
      * @param $key
      * @return string|null
      */
     public function getConfig($key)
     {
-        return (isset(self::$loaded_config[$this->className][$key])) ? self::$loaded_config[$this->className][$key] : null;
+        return (isset(self::$loadedConfig[$this->className][$key])) ? self::$loadedConfig[$this->className][$key] : null;
     }
 
 
     /**
-     * Set a config value (runtime only and for all instances of the derived TemplateEngine class)
+     * Set a config value (runtime only and for all instances of the derived TemplateEngine class).
      *
      * @param $key
      * @param $value
      */
     public function setConfig($key, $value)
     {
-        self::$loaded_config[$this->className][$key] = $value;
+        self::$loadedConfig[$this->className][$key] = $value;
     }
 
 
@@ -235,7 +220,7 @@ abstract class TemplateEngine extends Wire
 
 
     /**
-     * Get the path where templates are stored
+     * Get the path where templates are stored.
      *
      * @return string
      */
@@ -248,14 +233,14 @@ abstract class TemplateEngine extends Wire
 
 
     /**
-     * Load configuration once for all instances of TemplateEngine
+     * Load configuration once for all instances of TemplateEngine.
      *
      */
     protected function initConfig()
     {
-        if (!isset(self::$loaded_config[$this->className])) {
+        if (!isset(self::$loadedConfig[$this->className])) {
             $configs = $this->wire('modules')->getModuleConfigData($this);
-            self::$loaded_config[$this->className] = array_merge($this->getDefaultConfig(), $configs);
+            self::$loadedConfig[$this->className] = array_merge($this->getDefaultConfig(), $configs);
         }
     }
 }
