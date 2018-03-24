@@ -36,4 +36,10 @@ class TemplateEngineNull extends TemplateEngine
         return '';
     }
 
+
+    /**
+     * @inheritdoc
+     */
+    protected function initConfig() {}
+
 }

@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.1.3] - 2018-03-18
+
+### Fixed
+* Fix `Notice: Undefined index: TemplateEngineNull` if no template is available for the current page
+and debug mode is enabled.
+
 ## [1.1.2] - 2018-03-18
 
 ### Fixed
@@ -22,5 +28,6 @@ than the page throwing the 404 exception.
 * Lower hook priority for the hook executed after `Page::render`. This makes sure that the current active
 template engine returns the markup *before* other modules hooking after `Page::render`.
 
+[1.1.3]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v1.1.3
 [1.1.2]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v1.1.2
 [1.1.1]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v1.1.1

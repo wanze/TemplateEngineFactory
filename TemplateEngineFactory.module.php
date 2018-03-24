@@ -15,7 +15,7 @@ require_once(__DIR__ . '/TemplateEngineChunk.php');
  *
  * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
  * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
- * @version 1.1.2
+ * @version 1.1.3
  */
 class TemplateEngineFactory extends WireData implements Module, ConfigurableModule
 {
@@ -308,7 +308,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     {
         return array(
             'title' => 'Template Engine Factory',
-            'version' => 112,
+            'version' => 113,
             'author' => 'Stefan Wanzenried',
             'summary' => 'Provides ProcessWire integration for various template engines such as Twig or Smarty. ',
             'href' => 'https://processwire.com/talk/topic/6833-module-templateenginefactory/',
