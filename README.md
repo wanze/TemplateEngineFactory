@@ -10,6 +10,7 @@ ProcessWire module helping to separate logic from markup. It turns ProcessWire t
 * **Jade** See: https://github.com/dreerr/TemplateEngineJade
 * **Blade** See: https://github.com/mauricius/TemplateEngineBlade
 * **Mustache** See: https://github.com/cojaco/TemplateEngineMustache
+* **Pug** See: https://github.com/dreerr/TemplateEnginePug
 
 ## Installation
 
