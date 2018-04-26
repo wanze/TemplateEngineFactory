@@ -8,6 +8,9 @@ ProcessWire module helping to separate logic from markup. It turns ProcessWire t
 * **Smarty** See: https://github.com/wanze/TemplateEngineSmarty
 * **Twig** See: https://github.com/wanze/TemplateEngineTwig
 * **Jade** See: https://github.com/dreerr/TemplateEngineJade
+* **Blade** See: https://github.com/mauricius/TemplateEngineBlade
+* **Mustache** See: https://github.com/cojaco/TemplateEngineMustache
+
 
 ## Installation
 
