@@ -11,7 +11,6 @@ ProcessWire module helping to separate logic from markup. It turns ProcessWire t
 * **Blade** See: https://github.com/mauricius/TemplateEngineBlade
 * **Mustache** See: https://github.com/cojaco/TemplateEngineMustache
 
-
 ## Installation
 
 Install the module just like any other ProcessWire module. Check out the following guide: http://modules.processwire.com/install-uninstall/
