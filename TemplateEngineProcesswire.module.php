@@ -1,94 +1,39 @@
 <?php
-require_once('TemplateEngine.php');
+
+namespace ProcessWire;
+
+use TemplateEngineFactory\TemplateEngineProcessWire as ProcessWireEngine;
 
 /**
- * TemplateEngineProcesswire
- *
- * @author Stefan Wanzenried <stefan.wanzenried@gmail.com>
- * @license http://www.gnu.org/licenses/gpl-2.0.txt GNU General Public License, version 2
- * @version 1.0.1
+ * Provides a template engine using ProcessWire's internal template files.
  */
-class TemplateEngineProcesswire extends TemplateEngine implements Module, ConfigurableModule
+class TemplateEngineProcesswire extends WireData implements Module
 {
-
-    /**
-     * @var TemplateFile
-     */
-    protected $template;
-
-
-    /**
-     * @inheritdoc
-     */
-    public function initEngine()
-    {
-        $this->template = new TemplateFile($this->getTemplatesPath() . $this->getFilename());
-    }
-
-
-    /**
-     * @inheritdoc
-     */
-    public function set($key, $value)
-    {
-        $this->template->set($key, $value);
-    }
-
-
-    /**
-     * @inheritdoc
-     */
-    public function render()
-    {
-        return $this->template->render();
-    }
-
-
-    /**
-     * @return array
-     */
-    public static function getDefaultConfig()
-    {
-        $config = parent::getDefaultConfig();
-        return array_merge($config, array(
-            'template_files_suffix' => 'php',
-        ));
-    }
-
-
-    /**
-     * Per interface Module, ConfigurableModule
-     *
-     */
-
-
     /**
      * @return array
      */
     public static function getModuleInfo()
     {
-        return array(
+        return [
             'title' => 'Template Engine ProcessWire',
-            'version' => 101,
+            'version' => 200,
             'author' => 'Stefan Wanzenried',
-            'summary' => 'ProcessWire templates for the TemplateEngineFactory',
-            'href' => '',
-            'singular' => false,
-            'autoload' => false,
-            'requires' => array('TemplateEngineFactory'),
-        );
+            'summary' => 'ProcessWire templates for the TemplateEngineFactory.',
+            'singular' => true,
+            'autoload' => true,
+            'requires' => [
+                'TemplateEngineFactory>=2.0.0',
+                'PHP>=7.0',
+                'ProcessWire>=3.0',
+            ],
+        ];
     }
 
-
-    /**
-     * @param array $data Array of config values indexed by field name
-     * @return InputfieldWrapper
-     */
-    public static function getModuleConfigInputfields(array $data)
+    public function ready()
     {
-        $data = array_merge(self::getDefaultConfig(), $data);
-        $wrapper = parent::getModuleConfigInputfields($data);
-        return $wrapper;
-    }
+        /** @var \ProcessWire\TemplateEngineFactory $factory */
+        $factory = $this->wire('modules')->get('TemplateEngineFactory');
 
+        $factory->registerEngine('ProcessWire', new ProcessWireEngine($factory));
+    }
 }
