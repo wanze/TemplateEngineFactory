@@ -10,13 +10,13 @@ use ProcessWire\Template;
 use ProcessWire\TemplateEngineFactory;
 use TemplateEngineFactory\TemplateEngineInterface;
 use TemplateEngineFactory\TemplateEngineNull;
-use TemplateEngineFactory\TemplateEngineProcessWire;
+use TemplateEngineFactory\TemplateVariables;
 
 /**
  * Tests for the TemplateEngineFactory module.
  *
  * @coversDefaultClass \ProcessWire\TemplateEngineFactory
- * 
+ *
  * @group TemplateEngineFactory
  */
 class TemplateEngineFactoryTest extends TestCase
@@ -212,21 +212,74 @@ class TemplateEngineFactoryTest extends TestCase
         $page->render();
     }
 
-    public function test_rendering()
+    public function test_template_variables_passed_to_engine()
     {
-        $this->markTestIncomplete('Does not work correctly.');
+        $variables = [
+            'foo' => 'bar',
+            'this' => 'that',
+        ];
+
+        // Hook after Page::render but before the factory renders the template
+        // in order to manipulate the template variables.
+        $this->wire->addHookAfter('Page::render', function () use ($variables) {
+            $this->wire->wire($this->factory->get('api_var'), new TemplateVariables($variables));
+        }, null, ['priority' => 50]);
 
         $this->factory->ready();
-        $this->factory->registerEngine('ProcessWire', new TemplateEngineProcessWire($this->factory));
-        $this->factory->set('engine', 'ProcessWire');
 
-        // Let $config->path->site point to the current directory.
-        // The engine will load our test template in templates/views.
-        $paths = $this->wire->wire('config')->paths;
-        $paths->set('site', 'site/modules/TemplateEngineFactory/tests/');
+        $engine = $this->registerMockedEngine();
+
+        $engine
+            ->expects($this->once())
+            ->method('render')
+            ->with('foo', $variables);
 
         $page = $this->getPage('foo');
-        $this->assertEquals('<h1>Hello World</h1>', $page->render());
+        $page->render();
+    }
+
+    public function test_hook_getTemplateVariables()
+    {
+        $variables = [
+            'foo' => 'bar',
+            'this' => 'that',
+        ];
+
+        $this->wire->addHookAfter(
+            'TemplateEngineFactory::getTemplateVariables',
+            function (HookEvent $event) use ($variables) {
+                $event->return = $variables;
+            });
+
+        $result = [];
+
+        $this->wire->addHookBefore('Page::render', function() use (&$result) {
+            /** @var TemplateVariables $templateVariables */
+            $templateVariables = $this->wire->wire($this->factory->get('api_var'));
+            $result = $templateVariables->getArray();
+        }, null, ['priority' => 150]);
+
+        $this->registerDummyEngine();
+
+        $this->factory->ready();
+
+        $page = $this->getPage('foo');
+        $page->render();
+
+        $this->assertEquals($variables, $result);
+    }
+
+    /**
+     * @return \PHPUnit\Framework\MockObject\MockObject
+     */
+    private function registerMockedEngine()
+    {
+        $engine = $this->getMockBuilder(TemplateEngineInterface::class)->getMock();
+
+        $this->factory->registerEngine('MockedEngine', $engine);
+        $this->factory->set('engine', 'MockedEngine');
+
+        return $engine;
     }
 
     private function registerDummyEngine()
@@ -289,18 +342,5 @@ class TemplateEngineFactoryTest extends TestCase
         $process = $this->wire->modules->get('ProcessPageView');
         $this->wire->wire('process', $process);
         $process->execute(false);
-    }
-
-    /**
-     * @return \PHPUnit\Framework\MockObject\MockObject
-     */
-    private function registerMockedEngine()
-    {
-        $engine = $this->getMockBuilder(TemplateEngineInterface::class)->getMock();
-
-        $this->factory->registerEngine('MockedEngine', $engine);
-        $this->factory->set('engine', 'MockedEngine');
-
-        return $engine;
     }
 }

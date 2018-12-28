@@ -79,7 +79,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         }
 
         $this->addHookBefore('Page::render', $this, 'hookBeforePageRender');
-        $this->addHookAfter('Page::render', $this, 'hookAfterPageRender');
+        $this->addHookAfter('Page::render', $this, 'hookAfterPageRender', ['priority' => '100.01']);
     }
 
     /**
@@ -110,7 +110,9 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      * Render the given template and data via template engine.
      *
      * @param string $template
+     *   A relative path to the template file.
      * @param array $data
+     *   Data passed to the template file.
      *
      * @return string
      */
@@ -174,6 +176,9 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     /**
      * Get the name of the template that should be used to render the given page.
      *
+     * By default, the module will load a template with the same name as the
+     * page's (ProcessWire) template name.
+     *
      * @param \ProcessWire\Page $page
      *
      * @return string
@@ -193,6 +198,24 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     protected function ___shouldRenderPage(Page $page)
     {
         return $this->shouldRenderTemplate($page->get('template')->name);
+    }
+
+    /**
+     * Get variables available in the template when rendering the given page.
+     *
+     * The returned array will be passed to the engine when rendering the page.
+     * By default, the module includes the page being rendered as "_page".
+     * Note that this page might be different from the global "page" object.
+     *
+     * @param \ProcessWire\Page $page
+     *
+     * @return array
+     */
+    protected function ___getTemplateVariables(Page $page)
+    {
+        return [
+            '_page' => $page
+        ];
     }
 
     /**
@@ -231,7 +254,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
             $this->templateVariables->append($variables);
         }
 
-        $variables = new TemplateVariables(['_page' => $page]);
+        $variables = new TemplateVariables($this->getTemplateVariables($page));
 
         $this->wire($this->get('api_var'), $variables);
     }
