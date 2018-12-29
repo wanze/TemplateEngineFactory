@@ -34,6 +34,6 @@ class TemplateEngineProcesswire extends WireData implements Module
         /** @var \ProcessWire\TemplateEngineFactory $factory */
         $factory = $this->wire('modules')->get('TemplateEngineFactory');
 
-        $factory->registerEngine('ProcessWire', new ProcessWireEngine($factory));
+        $factory->registerEngine('ProcessWire', new ProcessWireEngine($factory->getArray()));
     }
 }

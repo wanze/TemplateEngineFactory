@@ -2,7 +2,6 @@
 
 namespace TemplateEngineFactory;
 
-use ProcessWire\TemplateEngineFactory;
 use ProcessWire\Wire;
 
 /**
@@ -11,18 +10,29 @@ use ProcessWire\Wire;
 abstract class TemplateEngineBase extends Wire implements TemplateEngineInterface
 {
     /**
-     * @var \ProcessWire\TemplateEngineFactory
+     * The TemplateEngineFactory module configuration
+     *
+     * @var array
      */
-    protected $factory;
+    protected $factoryConfig;
 
     /**
-     * @param \ProcessWire\TemplateEngineFactory $factory
+     * Configuration from the module providing this engine.
+     *
+     * @var array
      */
-    public function __construct(TemplateEngineFactory $factory)
+    protected $moduleConfig;
+
+    /**
+     * @param array $factoryConfig
+     * @param array $moduleConfig
+     */
+    public function __construct(array $factoryConfig, array $moduleConfig = [])
     {
         parent::__construct();
 
-        $this->factory = $factory;
+        $this->factoryConfig = $factoryConfig;
+        $this->moduleConfig = $moduleConfig;
     }
 
     /**
@@ -34,7 +44,7 @@ abstract class TemplateEngineBase extends Wire implements TemplateEngineInterfac
      */
     protected function getTemplatesRootPath()
     {
-        $path = ltrim($this->factory->get('templates_path'), '/');
+        $path = ltrim($this->factoryConfig['templates_path'], '/');
 
         return sprintf('%s%s/',
             $this->wire('config')->paths->site,
