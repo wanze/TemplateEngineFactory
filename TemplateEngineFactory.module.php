@@ -7,7 +7,7 @@ use TemplateEngineFactory\TemplateEngineInterface;
 use TemplateEngineFactory\TemplateEngineNull;
 
 /**
- * Provides integration for various template engines such as Twig.
+ * Provides ProcessWire integration for various template engines such as Twig.
  *
  * @see https://github.com/wanze/TemplateEngineFactory
  */
@@ -338,7 +338,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
 
         $field = $modules->get('InputfieldText');
         $field->label = __('API variable for the TemplateEngineFactory module');
-        $field->description = __('Enter the name for the API variable returning an instance of this module.');
+        $field->description = __('Enter a name for the API variable returning an instance of this module.');
         $field->name = 'api_var_factory';
         $field->value = $data['api_var_factory'];
         $field->required = 1;
