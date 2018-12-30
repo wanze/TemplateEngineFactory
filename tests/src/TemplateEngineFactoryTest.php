@@ -102,6 +102,21 @@ class TemplateEngineFactoryTest extends TestCase
     /**
      * @covers ::ready
      */
+    public function testReady_FactoryApiVariableWithDifferentNames_ApiVariableIsAvailable()
+    {
+        $this->factory->ready();
+
+        $this->assertInstanceOf(TemplateEngineFactory::class, $this->wire->wire('factory'));
+
+        $this->factory->set('api_var_factory', 'factoryCustomName');
+        $this->factory->ready();
+
+        $this->assertInstanceOf(TemplateEngineFactory::class, $this->wire->wire('factoryCustomName'));
+    }
+
+    /**
+     * @covers ::ready
+     */
     public function testReady_AutomaticPageRenderingEnabled_HooksToPageRenderRegistered()
     {
         $this->factory->ready();
@@ -217,7 +232,7 @@ class TemplateEngineFactoryTest extends TestCase
         $page->render();
     }
 
-    public function testRender_RenderedPageProvidesTemplateVariables_TemplateVariablesPassedToTemplateEngine()
+    public function testPageRender_RenderedPageProvidesTemplateVariables_TemplateVariablesPassedToTemplateEngine()
     {
         // These variables are passed to the engine via $view->set().
         $variables = [
