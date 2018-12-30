@@ -24,7 +24,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "TemplateEngineFactory\\Test\\": "tests/"
+            "TemplateEngineFactory\\Test\\": "tests/src/"
         }
     }
 }

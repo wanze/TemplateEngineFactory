@@ -42,7 +42,7 @@ class TemplateEngineFactoryTest extends TestCase
         ProcessWire::removeInstance($this->wire);
     }
 
-    public function test_default_config()
+    public function testInitModule_UsingDefaultConfig_ConfigReturnedCorrectly()
     {
         $expected = [
             'engine' => '',
@@ -60,7 +60,7 @@ class TemplateEngineFactoryTest extends TestCase
     /**
      * @covers ::getEngine
      */
-    public function test_get_engine()
+    public function testGetEngine_NoEngineOrDummyEngineRegistered_ReturnsCorrectEngine()
     {
         $this->assertInstanceOf(TemplateEngineNull::class, $this->factory->getEngine());
 
@@ -72,21 +72,24 @@ class TemplateEngineFactoryTest extends TestCase
     /**
      * @covers ::getEngines
      */
-    public function test_get_engines()
+    public function testGetEngines_NoOrMultipleEnginesRegistered_ReturnsRegisteredEngines()
     {
         $this->assertEmpty($this->factory->getEngines());
 
         $this->registerDummyEngine();
+        $this->registerMockedEngine();
 
         $engines = $this->factory->getEngines();
-        $this->assertCount(1, $engines);
+
+        $this->assertCount(2, $engines);
         $this->assertInstanceOf(TemplateEngineInterface::class, array_pop($engines));
+        $this->assertInstanceOf(TemplateEngineDummy::class, array_pop($engines));
     }
 
     /**
      * @covers ::render
      */
-    public function test_render()
+    public function testRender_NoEngineOrDummyEngineRegistered_EngineRendersCorrectOutput()
     {
         $this->assertEquals('', $this->factory->render('some/template'));
 
@@ -99,7 +102,7 @@ class TemplateEngineFactoryTest extends TestCase
     /**
      * @covers ::ready
      */
-    public function test_hooks_attached_if_active()
+    public function testReady_AutomaticPageRenderingEnabled_HooksToPageRenderRegistered()
     {
         $this->factory->ready();
 
@@ -110,7 +113,7 @@ class TemplateEngineFactoryTest extends TestCase
     /**
      * @covers ::ready
      */
-    public function test_hooks_not_attached_if_inactive()
+    public function testReady_AutomaticPageRenderingDisabled_HooksToPageRenderNotRegistered()
     {
         $this->factory->set('active', false);
         $this->factory->ready();
@@ -119,7 +122,7 @@ class TemplateEngineFactoryTest extends TestCase
         $this->assertFalse($this->hookExists('Page::render', TemplateEngineFactory::class, 'after'));
     }
 
-    public function test_hook_resolveTemplate()
+    public function testHookResolveTemplate_RegisterHookReturningCustomTemplate_TemplateEngineUsesCustomTemplate()
     {
         $this->factory->ready();
 
@@ -137,16 +140,18 @@ class TemplateEngineFactoryTest extends TestCase
             ->method('render')
             ->with('my-custom-template');
 
+        // First call without hook: Should use 'my-template'.
         $page->render();
 
         $this->wire->addHookAfter('TemplateEngineFactory::resolveTemplate', function (HookEvent $event) {
             $event->return = 'my-custom-template';
         });
 
+        // Second call, hook active: Should use 'my-custom-template'.
         $page->render();
     }
 
-    public function test_enabled_templates_rendered_if_enabled()
+    public function testEnabledTemplates_TemplateOfRenderedPageEnabled_PageRenderedByTemplateEngine()
     {
         $this->factory->ready();
         $this->factory->set('enabled_templates', ['my-template']);
@@ -163,7 +168,7 @@ class TemplateEngineFactoryTest extends TestCase
         $page->render();
     }
 
-    public function test_enabled_templates_not_rendered_if_not_enabled()
+    public function testEnabledTemplates_TemplateOfRenderedPageNotEnabled_PageNotRenderedByTemplateEngine()
     {
         $this->factory->ready();
         $this->factory->set('enabled_templates', ['home']);
@@ -179,7 +184,7 @@ class TemplateEngineFactoryTest extends TestCase
         $page->render();
     }
 
-    public function test_disabled_templates_not_rendered_if_disabled()
+    public function testDisabledTemplates_TemplateOfRenderedPageDisabled_PageNotRenderedByTemplateEngine()
     {
         $this->factory->ready();
         $this->factory->set('disabled_templates', ['disabled-template']);
@@ -195,7 +200,7 @@ class TemplateEngineFactoryTest extends TestCase
         $page->render();
     }
 
-    public function test_disabled_templates_rendered_if_not_disabled()
+    public function testDisabledTemplates_TemplateOfRenderedPageNotDisabled_PageRenderedByTemplateEngine()
     {
         $this->factory->ready();
         $this->factory->set('disabled_templates', ['disabled-template']);
@@ -212,8 +217,9 @@ class TemplateEngineFactoryTest extends TestCase
         $page->render();
     }
 
-    public function test_template_variables_passed_to_engine()
+    public function testRender_RenderedPageProvidesTemplateVariables_TemplateVariablesPassedToTemplateEngine()
     {
+        // These variables are passed to the engine via $view->set().
         $variables = [
             'foo' => 'bar',
             'this' => 'that',
@@ -238,13 +244,14 @@ class TemplateEngineFactoryTest extends TestCase
         $page->render();
     }
 
-    public function test_hook_getTemplateVariables()
+    public function testHookGetTemplateVariables_RegisterHookWithCustomVariables_VariablesArePassedToTemplateEngine()
     {
         $variables = [
             'foo' => 'bar',
             'this' => 'that',
         ];
 
+        // Make the above variables available for the template engine.
         $this->wire->addHookAfter(
             'TemplateEngineFactory::getTemplateVariables',
             function (HookEvent $event) use ($variables) {
@@ -329,12 +336,12 @@ class TemplateEngineFactoryTest extends TestCase
 
     private function bootstrapProcessWire()
     {
-        $rootPath = __DIR__ . '../../../../../';
+        $rootPath = __DIR__ . '../../../../../../';
         $config = ProcessWire::buildConfig($rootPath);
         $this->wire = new ProcessWire($config);
 
         // Make sure that the module's ready() method is not called by ProcessPageView::execute().
-        // We call this method in our tests.
+        // We manually call this method to increase testability.
         $this->wire->addHookBefore('ProcessWire::ready', function (HookEvent $event) {
             $event->replace = true;
         });
