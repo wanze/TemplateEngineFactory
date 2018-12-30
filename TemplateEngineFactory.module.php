@@ -20,7 +20,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         'engine' => '',
         'api_var' => 'view',
         'api_var_factory' => 'factory',
-        'active' => true,
+        'auto_page_render' => true,
         'enabled_templates' => [],
         'disabled_templates' => [],
         'templates_path' => 'templates/views/'
@@ -74,7 +74,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     {
         $this->wire($this->get('api_var_factory'), $this);
 
-        if (!$this->get('active')) {
+        if (!$this->get('auto_page_render')) {
             return;
         }
 
@@ -338,45 +338,47 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
 
         $field = $modules->get('InputfieldText');
         $field->label = __('API variable for the TemplateEngineFactory module');
-        $field->description = __('Enter the name of the API variable that returns an instance of this module.');
+        $field->description = __('Enter the name for the API variable returning an instance of this module.');
         $field->name = 'api_var_factory';
         $field->value = $data['api_var_factory'];
         $field->required = 1;
         $wrapper->append($field);
 
+        /** @var \ProcessWire\InputfieldCheckbox $field */
+        $field = $modules->get('InputfieldCheckbox');
+        $field->label = __('Enable automatic page rendering');
+        $field->description = __('Check to delegate the rendering of pages to the template engine. You may enable or disable this behaviour for specific templates.');
+        $field->name = 'auto_page_render';
+        $field->attr('checked', (bool) $data['auto_page_render']);
+        $wrapper->append($field);
+
         $field = $modules->get('InputfieldText');
-        $field->label = __('API variable to interact with the view');
-        $field->description = __('Enter the name of the API variable used to pass data to the template engine.');
+        $field->label = __('API variable to interact with the template engine');
+        $field->description = __('Enter a name for the API variable used to pass data from the ProcessWire template (Controller) to the template engine.');
         $field->name = 'api_var';
         $field->value = $data['api_var'];
         $field->required = 1;
-        $wrapper->append($field);
-
-        /** @var \ProcessWire\InputfieldCheckbox $field */
-        $field = $modules->get('InputfieldCheckbox');
-        $field->label = __('Enable automatic rendering via template engine');
-        $field->description = __('Check to use ProcessWire templates as *Controllers* delegating the rendering of pages to the template engine.');
-        $field->name = 'active';
-        $field->attr('checked', (bool) $data['active']);
+        $field->showIf = 'auto_page_render=1';
         $wrapper->append($field);
 
         $field = $modules->get('InputfieldAsmSelect');
         $field->label = __('Enabled templates');
-        $field->description = __('Select templates that should be rendered via template engine. If empty, all templates will be rendered by the template engine.');
+        $field->description = __('Restrict automatic page rendering to the templates selected here.');
         $field->attr('name', 'enabled_templates');
         $field->attr('value', $data['enabled_templates']);
         $field->collapsed = Inputfield::collapsedBlank;
-        $field->showIf = 'active=1';
+        $field->showIf = 'auto_page_render=1';
         $field->addOptions($templates);
         $wrapper->append($field);
 
         $field = $modules->get('InputfieldAsmSelect');
         $field->label = __('Disabled templates');
-        $field->description = __('Select templates that should **not** be rendered via template engine.');
+        $field->description = __('Select templates that should **not** automatically be rendered via template engine.');
+        $field->notes = __('Do not use in combination with the *Enabled templates* configuration above, either enable or disable templates.');
         $field->attr('name', 'disabled_templates');
         $field->attr('value', $data['disabled_templates']);
         $field->collapsed = Inputfield::collapsedBlank;
-        $field->showIf = 'active=1';
+        $field->showIf = 'auto_page_render=1';
         $field->addOptions($templates);
         $wrapper->append($field);
 

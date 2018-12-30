@@ -48,7 +48,7 @@ class TemplateEngineFactoryTest extends TestCase
             'engine' => '',
             'api_var' => 'view',
             'api_var_factory' => 'factory',
-            'active' => true,
+            'auto_page_render' => true,
             'enabled_templates' => [],
             'disabled_templates' => [],
             'templates_path' => 'templates/views/',
@@ -115,7 +115,7 @@ class TemplateEngineFactoryTest extends TestCase
      */
     public function testReady_AutomaticPageRenderingDisabled_HooksToPageRenderNotRegistered()
     {
-        $this->factory->set('active', false);
+        $this->factory->set('auto_page_render', false);
         $this->factory->ready();
 
         $this->assertFalse($this->hookExists('Page::render', TemplateEngineFactory::class, 'before'));
