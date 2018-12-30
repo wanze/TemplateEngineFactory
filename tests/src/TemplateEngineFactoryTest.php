@@ -4,9 +4,7 @@ namespace TemplateEngineFactory\Test;
 
 use PHPUnit\Framework\TestCase;
 use ProcessWire\HookEvent;
-use ProcessWire\Page;
 use ProcessWire\ProcessWire;
-use ProcessWire\Template;
 use ProcessWire\TemplateEngineFactory;
 use TemplateEngineFactory\TemplateEngineInterface;
 use TemplateEngineFactory\TemplateEngineNull;
@@ -21,6 +19,8 @@ use TemplateEngineFactory\TemplateVariables;
  */
 class TemplateEngineFactoryTest extends TestCase
 {
+    use TestHelperTrait;
+
     /**
      * @var TemplateEngineFactory
      */
@@ -33,7 +33,7 @@ class TemplateEngineFactoryTest extends TestCase
 
     protected function setUp()
     {
-        $this->bootstrapProcessWire();
+        $this->wire = $this->bootstrapProcessWire();
         $this->factory = new TemplateEngineFactory();
     }
 
@@ -106,8 +106,8 @@ class TemplateEngineFactoryTest extends TestCase
     {
         $this->factory->ready();
 
-        $this->assertTrue($this->hookExists('Page::render', TemplateEngineFactory::class, 'before'));
-        $this->assertTrue($this->hookExists('Page::render', TemplateEngineFactory::class, 'after'));
+        $this->assertTrue($this->hookExists($this->wire, 'Page::render', TemplateEngineFactory::class, 'before'));
+        $this->assertTrue($this->hookExists($this->wire, 'Page::render', TemplateEngineFactory::class, 'after'));
     }
 
     /**
@@ -118,8 +118,8 @@ class TemplateEngineFactoryTest extends TestCase
         $this->factory->set('auto_page_render', false);
         $this->factory->ready();
 
-        $this->assertFalse($this->hookExists('Page::render', TemplateEngineFactory::class, 'before'));
-        $this->assertFalse($this->hookExists('Page::render', TemplateEngineFactory::class, 'after'));
+        $this->assertFalse($this->hookExists($this->wire, 'Page::render', TemplateEngineFactory::class, 'before'));
+        $this->assertFalse($this->hookExists($this->wire, 'Page::render', TemplateEngineFactory::class, 'after'));
     }
 
     public function testHookResolveTemplate_RegisterHookReturningCustomTemplate_TemplateEngineUsesCustomTemplate()
@@ -293,61 +293,5 @@ class TemplateEngineFactoryTest extends TestCase
     {
         $this->factory->registerEngine('Dummy', new TemplateEngineDummy());
         $this->factory->set('engine', 'Dummy');
-    }
-
-    /**
-     * @param string $templateName
-     *
-     * @return \ProcessWire\Page
-     */
-    private function getPage($templateName)
-    {
-        $template = new Template();
-        $template->name = $templateName;
-
-        return new Page($template);
-    }
-
-    /**
-     * @param string $hookedMethod
-     *   The method being hooked, e.g. Page::render.
-     * @param $fromObject
-     *   Class name of the object attaching the hook.
-     * @param $type
-     *   after or before
-     *
-     * @return bool
-     */
-    private function hookExists($hookedMethod, $fromObject, $type)
-    {
-        list($class, $method) = explode('::', $hookedMethod);
-
-        $regexHookId = "/^${class}:.*:{$method}$/";
-
-        $hooks = array_filter($this->wire->getHooks('*'),
-            function ($hook) use ($regexHookId, $fromObject, $type) {
-                return preg_match($regexHookId, $hook['id'])
-                    && $hook['toObject'] instanceof $fromObject
-                    && $hook['options'][$type] === true;
-            });
-
-        return count($hooks) > 0;
-    }
-
-    private function bootstrapProcessWire()
-    {
-        $rootPath = __DIR__ . '../../../../../../';
-        $config = ProcessWire::buildConfig($rootPath);
-        $this->wire = new ProcessWire($config);
-
-        // Make sure that the module's ready() method is not called by ProcessPageView::execute().
-        // We manually call this method to increase testability.
-        $this->wire->addHookBefore('ProcessWire::ready', function (HookEvent $event) {
-            $event->replace = true;
-        });
-
-        $process = $this->wire->modules->get('ProcessPageView');
-        $this->wire->wire('process', $process);
-        $process->execute(false);
     }
 }
