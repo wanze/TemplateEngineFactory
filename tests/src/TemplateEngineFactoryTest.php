@@ -47,7 +47,6 @@ class TemplateEngineFactoryTest extends TestCase
         $expected = [
             'engine' => '',
             'api_var' => 'view',
-            'api_var_factory' => 'factory',
             'auto_page_render' => true,
             'enabled_templates' => [],
             'disabled_templates' => [],
@@ -97,21 +96,6 @@ class TemplateEngineFactoryTest extends TestCase
 
         $this->assertEquals('No data', $this->factory->render('some/template'));
         $this->assertEquals('foo => bar', $this->factory->render('some/template', ['foo' => 'bar']));
-    }
-
-    /**
-     * @covers ::ready
-     */
-    public function testReady_FactoryApiVariableWithDifferentNames_ApiVariableIsAvailable()
-    {
-        $this->factory->ready();
-
-        $this->assertInstanceOf(TemplateEngineFactory::class, $this->wire->wire('factory'));
-
-        $this->factory->set('api_var_factory', 'factoryCustomName');
-        $this->factory->ready();
-
-        $this->assertInstanceOf(TemplateEngineFactory::class, $this->wire->wire('factoryCustomName'));
     }
 
     /**

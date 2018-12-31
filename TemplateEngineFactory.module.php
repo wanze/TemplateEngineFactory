@@ -18,9 +18,8 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      */
     private static $defaultConfig = [
         'engine' => '',
-        'api_var' => 'view',
-        'api_var_factory' => 'factory',
         'auto_page_render' => true,
+        'api_var' => 'view',
         'enabled_templates' => [],
         'disabled_templates' => [],
         'templates_path' => 'templates/views/'
@@ -66,14 +65,10 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     }
 
     /**
-     * Initialize module by setting up hooks and exposing the $factory API variable.
-     *
-     * @throws \ProcessWire\WireException
+     * Initialize module by hooking into Page::render.
      */
     public function ready()
     {
-        $this->wire($this->get('api_var_factory'), $this);
-
         if (!$this->get('auto_page_render')) {
             return;
         }
@@ -333,14 +328,6 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         $field->label = __('Path to templates');
         $field->description = __('Relative path from the site directory where template files are stored. E.g. `templates/views/` resolves to `/site/templates/views/`.');
         $field->value = $data['templates_path'];
-        $field->required = 1;
-        $wrapper->append($field);
-
-        $field = $modules->get('InputfieldText');
-        $field->label = __('API variable for the TemplateEngineFactory module');
-        $field->description = __('Enter a name for the API variable returning an instance of this module.');
-        $field->name = 'api_var_factory';
-        $field->value = $data['api_var_factory'];
         $field->required = 1;
         $wrapper->append($field);
 
