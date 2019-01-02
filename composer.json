@@ -1,10 +1,10 @@
 {
     "name": "wanze/template-engine-factory",
     "type": "pw-module",
-    "description": "Provides ProcessWire integration for various template engines such as Twig or Smarty.",
+    "description": "Provides ProcessWire integration for various template engines such as Twig.",
     "keywords": [ "template-engine", "processwire"],
     "homepage": "https://github.com/wanze/TemplateEngineFactory",
-    "license": "GPL-2.0",
+    "license": "MIT",
     "authors": [
         {
             "name": "Stefan Wanzenried",
