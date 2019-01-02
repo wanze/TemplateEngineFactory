@@ -1,175 +1,142 @@
-TemplateEngineFactory
-=====================
-ProcessWire module helping to separate logic from markup. It turns ProcessWire templates into "controllers" which can interact over a new API variable with various template engines like "Smarty" or "Twig". Any template engine can be added to the factory as separate module.
+# Template Engine Factory
 
-## Implemented engines
+[![Build Status](https://travis-ci.org/wanze/TemplateEngineFactory.svg?branch=next)](https://travis-ci.org/wanze/TemplateEngineFactory)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-* **ProcessWire** Default engine using the class *TemplateFile* of ProcessWire. This engine ships with this module.
-* **Smarty** See: https://github.com/wanze/TemplateEngineSmarty
-* **Twig** See: https://github.com/wanze/TemplateEngineTwig
-* **Jade** See: https://github.com/dreerr/TemplateEngineJade
+A module integrating template engines such as Twig into ProcessWire. It allows to render pages or individual templates
+via template engine and encourages to separate logic from markup by implementing a simple _MVC_ pattern. 
+
+* For a quick introduction, please read the [Getting Started](#getting-started) section of this readme.
+* More information is available in the official [Documentation](DOCUMENTATION.md).
+
+> Version `2.x` of this module differs from the `1.x` version in many ways. Modules providing template engines must now be
+installed with composer only. Twig is currently the only template engine implemented for the `2.x` major version. Please
+take a look at the [upgrade guide](), as the new version introduces several backwards compatibility breaks.
+
+## Requirements
+
+* ProcessWire 3.0 or newer
+* PHP 7.0 or newer
+* Composer
 
 ## Installation
 
-Install the module just like any other ProcessWire module. Check out the following guide: http://modules.processwire.com/install-uninstall/
+Execute the following command in the root directory of your ProcessWire installation:  
 
-## Motivation
+```
+composer require wanze/template-engine-factory:^2.0 --no-dev
+```
 
-The goal of this module is to implement the MVC pattern as simple as possible. The ProcessWire template files under /site/templates/ *can* act as controllers, containing pure logic. A controller delegates the output/markup to a corresponding template file. This delegation is abstracted by the module so that any template engine can be used by the developer.
+This will automatically install the module in the `site/modules` directory.
+
+**Installing a template engine**
+
+Each template engine is installed with a separate ProcessWire module. If you would like to use [Twig](https://github.com/wanze/TemplateEngineTwig),
+you may execute the following command instead:
+
+```
+composer require wanze/template-engine-twig:^2.0 --no-dev
+```
+
+This will install the _Template Engine Twig_ module and the _Template Engine Factory_ module in one step.
+
+After the installation, make sure to enable the _Template Engine Factory_ module and also the module providing a template
+engine in the ProcessWire backend. 
+
+> The `--no-dev` flag tells Composer to not install develop dependencies used for the tests being part of this repository.
+If you are interested to execute the tests, require the module without this flag.
 
 ## Configuration
 
-* **Template Engine** The template engine that is used to render your templates. Any installed engine is listed here. By default, you can choose "ProcessWire", the engine that ships with this module. To use another engine like "Smarty" or "Twig", download the module (see links above) and install it. Once installed, the engine is recognized and selectable here.
+The module offers the following configuration options:
 
-* **API variable** This is the variable you can use in the controllers (ProcessWire templates) to access the template of the current page.
+* **`Template Engine`** The template engine used to render pages and templates. Any installed engine is listed here.
+* **`Path to templates`** Relative path from the site directory where template files are stored. E.g. `templates/views/`
+resolves to `/site/templates/views/`.
+* **`Enable automatic page rendering`** Check to delegate the rendering of pages to the template engine.
+You may enable or disable this behaviour for specific templates.
+* **`API variable to interact with the template engine`** Enter a name for the API variable used to pass data from
+the ProcessWire template (Controller) to the template engine.
+* **`Enabled templates`** Restrict automatic page rendering to the templates selected here.
+* **`Disabled templates`** Select templates of pages that should not automatically be rendered via template engine.
+Do not use in combination with the _Enabled templates_ configuration,
+either enable or disable templates.
 
-Any specific configurations related to the engines are set in the config options of the engine itself, e.g. "TemplateEngineProcesswire". Each engine has the following default config options available:
+> More configuration options might be available in the module providing a template engine, e.g. the
+module _TemplateEngineTwig_ offers several configuration related to Twig.
 
-* **Path to templates** Relative path from the site directory where template files are stored. E.g. "templates/views/" resolves to "/site/templates/views/"
-* **Template files suffix** File extension of template files
-* **Global template file** Filename of a template file that is used as main template behind the API variable
+## Available Template Engines
 
-## How does it work?
+* **ProcessWire** A template engine using ProcessWire's *TemplateFile* class for rendering. This engine ships with this module, but it is not installed automatically. Install
+the module _Template Engine ProcessWire_ and select the engine in the _Template Engine Factory_ module configuration.
+* **Twig** See: https://github.com/wanze/TemplateEngineTwig
 
-For each controller that is outputting markup, a corresponding template file should exist (in the template files directory configured per engine). The default convention is that the template file has the same name as the controller (aka ProcessWire template):
+## Getting Started
 
-* Template `/site/templates/views/home.php` corresponds to controller `/site/templates/home.php`
-* Template `/site/templates/views/product.php` corresponds to controller `/site/templates/product.php`
+> This section assumes that Twig is used as active template engine, but the usage is excatly the same for any other template
+engine.
 
-Depending on the setting "Global template file" of the activated engine, the factory tries to load the template file of the current page's controller or the global template file. If a template file is found, an instance of it is accessible over the API variable. If no template file is found, the factory assumes that the controller does not output markup over the template engine. In this case, the hook to modify the behaviour of Page::render() is not attached - everything works "normal".
+### Using the Template Engine to render templates
 
-The following example uses the ProcessWire template engine:
+Assume the following Twig template exists in `/site/templates/views/foo.html.twig`
+
+```twig
+<h1>{{ title }}</h1>
+{% if body %}
+    <p>{{ body }}</p>
+{% endif %}
+```
+
+The template can be rendered anywhere with the _Template Engine Factory_ module:
 
 ```php
-// In controller file: /site/templates/home.php
+$factory = wire('modules')->get('TemplateEngineFactory');
+$factory->render('foo', ['title' => 'Foo', 'body' => 'Hello World']);
+```
 
+### Automatic Page Rendering
+
+If enabled, this feature uses the template engine to render ProcessWire pages when calling the `Page::render` method.
+By default, the module tries to find a Twig template matching the same name as the ProcessWire template:
+
+* `/site/templates/views/home.html.twig` corresponds to `/site/templates/home.php`
+* `/site/templates/views/about.html.twig` corresponds to `/site/templates/about.php`
+
+ProcessWire templates have access to a `$view` API variable which can be used to pass data to the template engine.
+As the template engine is now responsible to output markup, ProcessWire templates can be seen as _Controllers_.
+They process the request and pass data to the _View_ layer via the `$view` API variable.
+
+**Examples**
+
+Consider the following ProcessWire template in `/site/templates/home.php`
+
+```php
+// Form has been submitted, do some processing, send mail, save data... 
 if ($input->post->form) {
-  // Do some processing, send mail, save data...
+  // ...
   $session->redirect('./');
 }
 
-$view->set('foo', 'bar');
-$view->set('show_nav', true);
-$view->set('nav_pages', $pages->get('/')->children());
-
-// Or pass multiple values to the view with setArray
-$view->setArray(array(
-  'foo' => 'bar',
-  'show_nav' => true,
-  'nav_pages' => $pages->get('/')->children()
-));
+// Forward some data to twig
+$view->set('nav_items', $pages->get('/')->children());
 ```
 
-In the example above, some logic is processed if a form was sent. Note that there is no markup generated, because this should now be done by the corresponding template file! Over the new API variable `$view`, key/value pairs are passed to the template. Here is an example how the template file could look like:
+The corresponding Twig template in `/site/templates/views/home.html.twig` might look like this:
 
-```php
-// In template file: /site/templates/view/home.php
+```twig
+<h1>{{ page.title }}</h1>
 
-<h1><?= $page->title ?></h1>
-<p>Foo: <?= $foo ?></p>
+<ul class="nav">
+{% for item in nav_items %}
+    <li><a href="{{ item.url }}">{{ item.title }}</a></li>
+{% endfor %}
+</ul>
 
-<?php if ($show_nav): ?>
-  <ul>
-  <?php foreach ($nav_pages as $p): ?>
-    <li><a href="<?= $p->url ?>"><?= $p->title ?></a></li>
-  <?php endforeach; ?>
-  </ul>
-<?php endif; ?>
+<form name="form">
+    <input type="text" name="email">
+    <input type="submit" value="Submit">
+</form>
 ```
 
-Assume there is installed the module "TemplateEngineSmarty" and Smarty is chosen as the active template engine. The template file could look like this:
-
-```php
-// In template file: /site/templates/smarty/home.tpl
-
-<h1>{$page->title}</h1>
-<p>Foo: {$foo}</p>
-
-{if $show_nav}
-  <ul>
-  {foreach $nav_pages as $p}
-    <li><a href="{$p->url}">{$p->title}</a></li>
-  {/foreach}
-  </ul>
-{/if}
-```
-
-The introduced API variable acts as a gateway to the active template engine. This means that the template engine can be switched at any time without the need to change the controller logic. In the previous example, the controller logic is still the same but the template engine was switched from "ProcessWire" to "Smarty". 
-
-### Load and output markup of other template files
-
-Use the "TemplateEngineFactory" module to load any template file and output it's markup:
-```php
-// In controller file: /site/templates/product.php
-$factory = $modules->get('TemplateEngineFactory');
-$partial = $factory->load('chunks/product_partial.tpl');
-$partial->set('product_title', $page->title);
-$partial->set('date', date('d.m.Y'));
-$partial_output = $partial->render();
-$view->set('partial', $partial_output);
-```
-The example above loads a template file called "product_partial.tpl" and passes some variables. Calling `render()` returns the rendered markup of the template file.
-
-**NOTE**: Versions >= 1.1.0 of this module provide an API variable `$factory` by default, so the step to get the module is not needed anymore.
-
-### Chunks
-
-A chunk represents a reusable part of a template. It consists of a PHP file containing some logic and a template file which is responsible to render the chunk.
-```php
-// The path to the chunk is relative to site/templates without the php suffix
-$chunk = $factory->chunk('chunks/nav-item');
-// You can pass any variables to the chunk, they become available as locally scoped variables
-$chunk->active = true;
-$chunk->set('hidden', false);
-// Returns the markup from the associated template file (view) from the active TemplateEngine. By default, the chunk's template file is looked up at the same path as the chunk file, relative to the storage location of the active template engine, e.g. /site/templates/views/chunks/nav-item.tpl
-$chunk->render();
-```
-
-## Important: Caching
-
-Since former ProcessWire templates are now controllers that generally do not output any markup, the ProcessWire template cache should *NOT* be active. Deactivate cache in the settings of your template under the section "Cache".
-
-It is possible for any template engine to support additional caching. At the moment only "Smarty" supports caching of it's own templates. If caching is supported by the engine, the following methods are available for you (advanced usage):
-
-```php
-// These methods are only available if the selected engine supports caching!!
-
-// Do only process logic if no cache file is existing
-if (!$view->isCached()) {
-  $view->txt = "No cache exists, I pass this variable";
-}
-
-// Clear cache of current template file
-$view->clearCache();
-
-// Clear cache of all template files
-$view->clearAllCache();
-```
-
-If caching is supported by the engine, the TemplateEngineFactory module takes care of clearing the cache whenever pages are saved or deleted.
-
-# Implementing a template engine
-
-Implementing another template engine is straightforward. Please take a look at the implemented engines like "Smarty" or "Twig" to see some examples. Your engine needs to extend the abstract class "TemplateEngine" and implement some methods.
-```php
-class TemplateEngineMyEngine extends TemplateEngine implements Module, ConfigurableModule
-{
-  
-  public function initEngine()
-  {
-    // This method is called by the TemplateEngineFactory after creating an instance. Setup the engine here.
-  }
-  
-  public function set($key, $value)
-  {
-    // Pass a key/value pair to your engine
-  }
-
-  public function render()
-  {
-    // Output the markup of the loaded template file
-  }
-}
-```
-
-After installing the "TemplateEngineMyEngine" module, the engine is recognized by the "TemplateEngineFactory" and can be used to render the markup.
+Note that the ProcessWire template does not echo out any markup. It just contains business logic and uses the `$view` API
+variable to pass data to the Twig template. That's it! The most simple _MVC_ pattern available in ProcessWire 😎
