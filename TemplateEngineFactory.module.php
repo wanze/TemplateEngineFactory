@@ -192,7 +192,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      */
     protected function ___shouldRenderPage(Page $page)
     {
-        return $this->shouldRenderTemplate($page->get('template')->name);
+        return $this->shouldRenderTemplate($page->get('template'));
     }
 
     /**
@@ -214,21 +214,28 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     }
 
     /**
-     * @param string $templateName
+     * @param \ProcessWire\Template $template
      *
      * @return bool
      */
-    private function shouldRenderTemplate($templateName) {
-        if ($templateName === 'admin') {
+    private function shouldRenderTemplate($template) {
+        // Do not render admin pages.
+        if ($template->name === 'admin') {
             return false;
         }
 
+        // Do not render pages not having a ProcessWire template file.
+        if (!$template->filenameExists()) {
+            return false;
+        }
+
+        // Check if the template is enabled or disabled.
         if (count($this->get('enabled_templates'))) {
-            return in_array($templateName, $this->get('enabled_templates'));
+            return in_array($template->name, $this->get('enabled_templates'));
         }
 
         if (count($this->get('disabled_templates'))) {
-            return !in_array($templateName, $this->get('disabled_templates'));
+            return !in_array($template->name, $this->get('disabled_templates'));
         }
 
         return true;
@@ -245,6 +252,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     {
         // Push any existing variables on the internal stack.
         $variables = $this->wire($this->get('api_var'));
+
         if ($variables instanceof TemplateVariables) {
             $this->templateVariables->append($variables);
         }
@@ -294,10 +302,8 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      */
     public static function getModuleConfigInputfields(array $data)
     {
-        $modules = wire('modules');
         $wrapper = new InputfieldWrapper();
         $data = array_merge(self::$defaultConfig, $data);
-        $engines = $modules->get('TemplateEngineFactory')->getEngines();
 
         $templates = [];
         foreach (wire('templates') as $template) {
@@ -309,12 +315,13 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         }
 
         /** @var \ProcessWire\InputfieldSelect $field */
-        $field = $modules->get('InputfieldSelect');
+        $field = wire('modules')->get('InputfieldSelect');
         $field->label = __('Template Engine');
         $field->description = __('Select the template engine which is used to render the pages.');
         $field->notes = __('More config options might be available in the module providing this engine.');
         $field->value = $data['engine'];
         $field->name = 'engine';
+        $engines = wire('modules')->get('TemplateEngineFactory')->getEngines();
         $options = [];
         foreach (array_keys($engines) as $name) {
             $options[$name] = ucfirst($name);
@@ -323,7 +330,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         $wrapper->append($field);
 
         /** @var \ProcessWire\InputfieldText $field */
-        $field = $modules->get('InputfieldText');
+        $field = wire('modules')->get('InputfieldText');
         $field->name = 'templates_path';
         $field->label = __('Path to templates');
         $field->description = __('Relative path from the site directory where template files are stored. E.g. `templates/views/` resolves to `/site/templates/views/`.');
@@ -332,14 +339,14 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         $wrapper->append($field);
 
         /** @var \ProcessWire\InputfieldCheckbox $field */
-        $field = $modules->get('InputfieldCheckbox');
+        $field = wire('modules')->get('InputfieldCheckbox');
         $field->label = __('Enable automatic page rendering');
         $field->description = __('Check to delegate the rendering of pages to the template engine. You may enable or disable this behaviour for specific templates.');
         $field->name = 'auto_page_render';
         $field->attr('checked', (bool) $data['auto_page_render']);
         $wrapper->append($field);
 
-        $field = $modules->get('InputfieldText');
+        $field = wire('modules')->get('InputfieldText');
         $field->label = __('API variable to interact with the template engine');
         $field->description = __('Enter a name for the API variable used to pass data from the ProcessWire template (Controller) to the template engine.');
         $field->name = 'api_var';
@@ -348,7 +355,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         $field->showIf = 'auto_page_render=1';
         $wrapper->append($field);
 
-        $field = $modules->get('InputfieldAsmSelect');
+        $field = wire('modules')->get('InputfieldAsmSelect');
         $field->label = __('Enabled templates');
         $field->description = __('Restrict automatic page rendering to the templates selected here.');
         $field->attr('name', 'enabled_templates');
@@ -358,7 +365,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         $field->addOptions($templates);
         $wrapper->append($field);
 
-        $field = $modules->get('InputfieldAsmSelect');
+        $field = wire('modules')->get('InputfieldAsmSelect');
         $field->label = __('Disabled templates');
         $field->description = __('Select templates that should **not** automatically be rendered via template engine.');
         $field->notes = __('Do not use in combination with the *Enabled templates* configuration above, either enable or disable templates.');

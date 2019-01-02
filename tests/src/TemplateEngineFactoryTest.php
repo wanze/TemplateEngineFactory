@@ -5,6 +5,7 @@ namespace TemplateEngineFactory\Test;
 use PHPUnit\Framework\TestCase;
 use ProcessWire\HookEvent;
 use ProcessWire\ProcessWire;
+use ProcessWire\Template;
 use ProcessWire\TemplateEngineFactory;
 use TemplateEngineFactory\TemplateEngineInterface;
 use TemplateEngineFactory\TemplateEngineNull;
@@ -42,7 +43,7 @@ class TemplateEngineFactoryTest extends TestCase
         ProcessWire::removeInstance($this->wire);
     }
 
-    public function testInitModule_UsingDefaultConfig_ConfigReturnedCorrectly()
+    public function testConstruct_UsingDefaultConfiguration_ReturnsCorrectConfiguration()
     {
         $expected = [
             'engine' => '',
@@ -127,7 +128,7 @@ class TemplateEngineFactoryTest extends TestCase
 
         $engine = $this->registerMockedEngine();
 
-        $page = $this->getPage('my-template');
+        $page = $this->getPageWithTemplate('my-template', dirname(__DIR__) . '/templates/foo.php');
 
         $engine
             ->expects($this->at(0))
@@ -157,7 +158,7 @@ class TemplateEngineFactoryTest extends TestCase
 
         $engine = $this->registerMockedEngine();
 
-        $page = $this->getPage('my-template');
+        $page = $this->getPageWithTemplate('my-template', dirname(__DIR__) . '/templates/foo.php');
 
         $engine
             ->expects($this->once())
@@ -174,7 +175,7 @@ class TemplateEngineFactoryTest extends TestCase
 
         $engine = $this->registerMockedEngine();
 
-        $page = $this->getPage('not-home');
+        $page = $this->getPageWithTemplate('not-home', dirname(__DIR__) . '/templates/foo.php');
 
         $engine
             ->expects($this->never())
@@ -190,7 +191,7 @@ class TemplateEngineFactoryTest extends TestCase
 
         $engine = $this->registerMockedEngine();
 
-        $page = $this->getPage('disabled-template');
+        $page = $this->getPageWithTemplate('disabled-template', dirname(__DIR__) . '/templates/foo.php');
 
         $engine
             ->expects($this->never())
@@ -206,12 +207,27 @@ class TemplateEngineFactoryTest extends TestCase
 
         $engine = $this->registerMockedEngine();
 
-        $page = $this->getPage('enabled-template');
+        $page = $this->getPageWithTemplate('enabled-template', dirname(__DIR__) . '/templates/foo.php');
 
         $engine
             ->expects($this->once())
             ->method('render')
             ->with('enabled-template');
+
+        $page->render();
+    }
+
+    public function testPageRender_RenderedPageDoesNotHaveTemplateFile_PageNotRenderedByTemplateEngine()
+    {
+        $this->factory->ready();
+
+        $engine = $this->registerMockedEngine();
+
+        $page = $this->getPageWithTemplate('a-template-with-no-file');
+
+        $engine
+            ->expects($this->never())
+            ->method('render');
 
         $page->render();
     }
@@ -239,7 +255,7 @@ class TemplateEngineFactoryTest extends TestCase
             ->method('render')
             ->with('foo', $variables);
 
-        $page = $this->getPage('foo');
+        $page = $this->getPageWithTemplate('foo', dirname(__DIR__) . '/templates/foo.php');
         $page->render();
     }
 
@@ -269,7 +285,7 @@ class TemplateEngineFactoryTest extends TestCase
 
         $this->factory->ready();
 
-        $page = $this->getPage('foo');
+        $page = $this->getPageWithTemplate('foo', dirname(__DIR__) . '/templates/foo.php');
         $page->render();
 
         $this->assertEquals($variables, $result);

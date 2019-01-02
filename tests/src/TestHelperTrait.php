@@ -14,13 +14,18 @@ trait TestHelperTrait
 {
     /**
      * @param string $templateName
+     * @param string $templateFile
      *
      * @return \ProcessWire\Page
      */
-    private function getPage($templateName)
+    private function getPageWithTemplate($templateName, $templateFile = '')
     {
         $template = new Template();
         $template->name = $templateName;
+
+        if ($templateFile) {
+            $template->filename = $templateFile;
+        }
 
         return new Page($template);
     }
