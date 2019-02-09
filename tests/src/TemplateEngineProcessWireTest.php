@@ -32,7 +32,7 @@ class TemplateEngineProcessWireTest extends TestCase
     {
         $this->wire = $this->bootstrapProcessWire();
 
-        $this->fakeSitePath();
+        $this->fakeSitePath($this->wire, 'site/modules/TemplateEngineFactory/tests/');
 
         $factoryConfig = $this->wire->wire('modules')
             ->get('TemplateEngineFactory')
@@ -76,20 +76,9 @@ class TemplateEngineProcessWireTest extends TestCase
             'Big Bang Theory',
         ];
 
-        // The series are rendered comma separated, @see templates/views/test_data.php
+        // The series are rendered comma separated, @see templates/views/test-data.php
         $expected = implode(',', $series);
 
-        $this->assertEquals($expected, $this->engine->render('test_data', ['series' => $series]));
-    }
-
-    /**
-     * Let $config->paths->site point to the test directory.
-     *
-     * This allows to render test templates under /templates/views.
-     */
-    private function fakeSitePath()
-    {
-        $paths = $this->wire->wire('config')->paths;
-        $paths->set('site', 'site/modules/TemplateEngineFactory/tests/');
+        $this->assertEquals($expected, $this->engine->render('test-data', ['series' => $series]));
     }
 }

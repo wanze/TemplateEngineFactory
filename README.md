@@ -11,40 +11,40 @@ via template engine and encourages to separate logic from markup by implementing
 
 > Version `2.x` of this module differs from the `1.x` version in many ways. Modules providing template engines must now be
 installed with composer only. Twig is currently the only template engine implemented for the `2.x` major version. Please
-take a look at the [upgrade guide](), as the new version introduces several backwards compatibility breaks.
+take a look at the [upgrade guide](), as the new version introduces backwards compatibility breaks.
 
 ## Requirements
 
-* ProcessWire 3.0 or newer
-* PHP 7.0 or newer
+* ProcessWire `3.0` or newer
+* PHP `7.0` or newer
 * Composer
 
 ## Installation
 
-Execute the following command in the root directory of your ProcessWire installation:  
+Execute the following command in the root directory of your ProcessWire installation:
 
 ```
-composer require wanze/template-engine-factory:^2.0 --no-dev
+composer require wanze/template-engine-factory:^2.0
 ```
 
 This will automatically install the module in the `site/modules` directory.
 
 **Installing a template engine**
 
-Each template engine is installed with a separate ProcessWire module. If you would like to use [Twig](https://github.com/wanze/TemplateEngineTwig),
+Each template engine is a separate ProcessWire module. If you would like to use [Twig](https://github.com/wanze/TemplateEngineTwig),
 you may execute the following command instead:
 
 ```
-composer require wanze/template-engine-twig:^2.0 --no-dev
+composer require wanze/template-engine-twig:^2.0
 ```
 
-This will install the _Template Engine Twig_ module and the _Template Engine Factory_ module in one step.
+This will install the _Template Engine Twig_ and _Template Engine Factory_ modules in one step.
 
 After the installation, make sure to enable the _Template Engine Factory_ module and also the module providing a template
 engine in the ProcessWire backend. 
 
-> The `--no-dev` flag tells Composer to not install develop dependencies used for the tests being part of this repository.
-If you are interested to execute the tests, require the module without this flag.
+> ℹ️ This module includes test dependencies. If you are installing it on production with `composer install`, make sure to
+pass the `--no-dev` flag to omit autoloading any unnecessary test dependencies!.
 
 ## Configuration
 
@@ -139,4 +139,4 @@ The corresponding Twig template in `/site/templates/views/home.html.twig` might 
 ```
 
 Note that the ProcessWire template does not echo out any markup. It just contains business logic and uses the `$view` API
-variable to pass data to the Twig template. That's it! The most simple _MVC_ pattern available in ProcessWire 😎
+variable to pass data to the Twig template. That's it! The most simple _MVC_ pattern available in ProcessWire. 😎

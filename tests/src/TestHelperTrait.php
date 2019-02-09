@@ -58,6 +58,20 @@ trait TestHelperTrait
     }
 
     /**
+     * Let $config->paths->site point to the given directory.
+     *
+     * This allows to render test templates under /templates/views.
+     *
+     * @param \ProcessWire\ProcessWire $wire
+     * @param string $sitePath
+     */
+    private function fakeSitePath(ProcessWire $wire, $sitePath)
+    {
+        $paths = $wire->wire('config')->paths;
+        $paths->set('site', $sitePath);
+    }
+
+    /**
      * @throws \ProcessWire\WireException
      * @throws \ProcessWire\WirePermissionException
      *

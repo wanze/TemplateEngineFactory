@@ -5,6 +5,7 @@ namespace ProcessWire;
 use TemplateEngineFactory\TemplateVariables;
 use TemplateEngineFactory\TemplateEngineInterface;
 use TemplateEngineFactory\TemplateEngineNull;
+use TemplateEngineFactory\Controller;
 
 /**
  * Provides ProcessWire integration for various template engines such as Twig.
@@ -39,7 +40,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     {
         parent::__construct();
 
-        $this->templateVariables = new WireArray();
+        $this->templateVariables = $this->wire(new WireArray());
         $this->wire('classLoader')->addNamespace('TemplateEngineFactory', __DIR__ . '/src');
         $this->setDefaultConfig();
     }
@@ -117,6 +118,19 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     }
 
     /**
+     * A controller wraps a ProcessWire template executing some logic and a template file of the active engine.
+     *
+     * @param string $controllerFile
+     * @param string $templateFile
+     *
+     * @return \TemplateEngineFactory\Controller
+     */
+    public function controller($controllerFile, $templateFile)
+    {
+        return $this->wire(new Controller($this, $controllerFile, $templateFile));
+    }
+
+    /**
      * @return \TemplateEngineFactory\TemplateEngineInterface[]
      */
     public function getEngines()
@@ -128,8 +142,6 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      * Hook before rendering a page.
      *
      * @param \ProcessWire\HookEvent $event
-     *
-     * @throws \ProcessWire\WireException
      */
     public function hookBeforePageRender(HookEvent $event)
     {
@@ -150,8 +162,6 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      * the template engine.
      *
      * @param \ProcessWire\HookEvent $event
-     *
-     * @throws \ProcessWire\WireException
      */
     public function hookAfterPageRender(HookEvent $event)
     {
@@ -163,9 +173,9 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         }
 
         $template = $this->resolveTemplate($page);
-        $variables = $this->collectTemplateVariables();
+        $variables = $this->resolveTemplateVariables($page, $this->collectTemplateVariables());
 
-        $event->return = $this->getEngine()->render($template, $variables->getArray());
+        $event->return = $this->getEngine()->render($template, $variables);
     }
 
     /**
@@ -192,6 +202,12 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      */
     protected function ___shouldRenderPage(Page $page)
     {
+        // If the page is not viewable, there is nothing to render for the template engine.
+        // TODO: Find out if the below makes sense.
+//        if (!$page->viewable()) {
+//            return false;
+//        }
+
         return $this->shouldRenderTemplate($page->get('template'));
     }
 
@@ -203,14 +219,13 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      * Note that this page might be different from the global "page" object.
      *
      * @param \ProcessWire\Page $page
+     * @param \TemplateEngineFactory\TemplateVariables $variables
      *
      * @return array
      */
-    protected function ___getTemplateVariables(Page $page)
+    protected function ___resolveTemplateVariables(Page $page, TemplateVariables $variables)
     {
-        return [
-            '_page' => $page
-        ];
+        return $variables->getArray();
     }
 
     /**
@@ -218,13 +233,13 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      *
      * @return bool
      */
-    private function shouldRenderTemplate($template) {
+    private function shouldRenderTemplate(Template $template) {
         // Do not render admin pages.
         if ($template->name === 'admin') {
             return false;
         }
 
-        // Do not render pages not having a ProcessWire template file.
+        // Do not render pages not having a ProcessWire template file, there is no "controller" available.
         if (!$template->filenameExists()) {
             return false;
         }
@@ -257,13 +272,16 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
             $this->templateVariables->append($variables);
         }
 
-        $variables = new TemplateVariables($this->getTemplateVariables($page));
+        $variables = $this->wire(new TemplateVariables(['_page' => $page]));
 
         $this->wire($this->get('api_var'), $variables);
     }
 
     /**
      * Get all collected template variables after rendering a page.
+     *
+     * The ProcessWire template aka "controller" has populated these
+     * variables during the Page::render() call.
      *
      * @throws \ProcessWire\WireException
      *
@@ -282,7 +300,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
             return $variables;
         }
 
-        return new TemplateVariables();
+        return $this->wire(new TemplateVariables());
     }
 
     private function setDefaultConfig()

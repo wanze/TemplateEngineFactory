@@ -259,7 +259,7 @@ class TemplateEngineFactoryTest extends TestCase
         $page->render();
     }
 
-    public function testHookGetTemplateVariables_RegisterHookWithCustomVariables_VariablesArePassedToTemplateEngine()
+    public function testHookResolveTemplateVariables_RegisterHookWithCustomVariables_VariablesArePassedToTemplateEngine()
     {
         $variables = [
             'foo' => 'bar',
@@ -268,27 +268,22 @@ class TemplateEngineFactoryTest extends TestCase
 
         // Make the above variables available for the template engine.
         $this->wire->addHookAfter(
-            'TemplateEngineFactory::getTemplateVariables',
+            'TemplateEngineFactory::resolveTemplateVariables',
             function (HookEvent $event) use ($variables) {
                 $event->return = $variables;
             });
 
-        $result = [];
+        $engine = $this->registerMockedEngine();
 
-        $this->wire->addHookBefore('Page::render', function() use (&$result) {
-            /** @var TemplateVariables $templateVariables */
-            $templateVariables = $this->wire->wire($this->factory->get('api_var'));
-            $result = $templateVariables->getArray();
-        }, null, ['priority' => 150]);
-
-        $this->registerDummyEngine();
+        $engine
+            ->expects($this->once())
+            ->method('render')
+            ->with('foo', $variables);
 
         $this->factory->ready();
 
         $page = $this->getPageWithTemplate('foo', dirname(__DIR__) . '/templates/foo.php');
         $page->render();
-
-        $this->assertEquals($variables, $result);
     }
 
     /**

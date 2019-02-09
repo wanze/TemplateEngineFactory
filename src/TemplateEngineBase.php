@@ -44,11 +44,11 @@ abstract class TemplateEngineBase extends Wire implements TemplateEngineInterfac
      */
     protected function getTemplatesRootPath()
     {
-        $path = ltrim($this->factoryConfig['templates_path'], '/');
+        $path = ltrim($this->factoryConfig['templates_path'], DIRECTORY_SEPARATOR);
 
-        return sprintf('%s%s/',
+        return sprintf('%s%s',
             $this->wire('config')->paths->site,
-            rtrim($path, '/')
+            rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR
         );
     }
 }
