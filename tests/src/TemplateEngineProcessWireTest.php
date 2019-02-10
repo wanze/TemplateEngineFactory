@@ -32,7 +32,7 @@ class TemplateEngineProcessWireTest extends TestCase
     {
         $this->wire = $this->bootstrapProcessWire();
 
-        $this->fakeSitePath($this->wire, 'site/modules/TemplateEngineFactory/tests/');
+        $this->fakePath($this->wire, 'site', 'site/modules/TemplateEngineFactory/tests/');
 
         $factoryConfig = $this->wire->wire('modules')
             ->get('TemplateEngineFactory')

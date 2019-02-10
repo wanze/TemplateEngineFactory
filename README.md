@@ -10,7 +10,7 @@ via template engine and encourages to separate logic from markup by implementing
 * More information is available in the official [Documentation](DOCUMENTATION.md).
 
 > Version `2.x` of this module differs from the `1.x` version in many ways. Modules providing template engines must now be
-installed with composer only. Twig is currently the only template engine implemented for the `2.x` major version. Please
+installed with Composer only. Twig is currently the only template engine implemented for the `2.x` major version. Please
 take a look at the [upgrade guide](), as the new version introduces backwards compatibility breaks.
 
 ## Requirements
@@ -27,21 +27,21 @@ Execute the following command in the root directory of your ProcessWire installa
 composer require wanze/template-engine-factory:^2.0
 ```
 
-This will automatically install the module in the `site/modules` directory.
+This installs the module and its bundled template engine called _TemplateEngineProcessWire_. This template engine uses 
+ProcessWire's internal `TemplateFile` class for rendering. Other template engines are added to the factory by installing
+separate ProcessWire modules.
 
-**Installing a template engine**
+### Installing Twig and other template engines
 
-Each template engine is a separate ProcessWire module. If you would like to use [Twig](https://github.com/wanze/TemplateEngineTwig),
-you may execute the following command instead:
+Each template engine is a separate ProcessWire module. For example, if you want to use [Twig](https://github.com/wanze/TemplateEngineTwig),
+execute the following command:
 
 ```
 composer require wanze/template-engine-twig:^2.0
 ```
 
-This will install the _Template Engine Twig_ and _Template Engine Factory_ modules in one step.
-
-After the installation, make sure to enable the _Template Engine Factory_ module and also the module providing a template
-engine in the ProcessWire backend. 
+This will install the _TemplateEngineTwig_ and _TemplateEngineFactory_ modules in one step, no need to install both
+separately. It also installs the Twig dependencies, pretty neat!
 
 > ℹ️ This module includes test dependencies. If you are installing it on production with `composer install`, make sure to
 pass the `--no-dev` flag to omit autoloading any unnecessary test dependencies!.
@@ -67,14 +67,15 @@ module _TemplateEngineTwig_ offers several configuration related to Twig.
 
 ## Available Template Engines
 
-* **ProcessWire** A template engine using ProcessWire's *TemplateFile* class for rendering. This engine ships with this module, but it is not installed automatically. Install
-the module _Template Engine ProcessWire_ and select the engine in the _Template Engine Factory_ module configuration.
+* **ProcessWire** A template engine using ProcessWire's *TemplateFile* class for rendering. This engine is bundled with
+this module, but it is not installed automatically. Install the module _TemplateEngineProcessWire_ and select the 
+engine in the _TemplateEngineFactory_ module configuration.
 * **Twig** See: https://github.com/wanze/TemplateEngineTwig
 
 ## Getting Started
 
-> This section assumes that Twig is used as active template engine, but the usage is excatly the same for any other template
-engine.
+> This section assumes that Twig is used as active template engine, but the usage is excatly the same for any other
+template engine.
 
 ### Using the Template Engine to render templates
 
@@ -91,12 +92,14 @@ The template can be rendered anywhere with the _Template Engine Factory_ module:
 
 ```php
 $factory = wire('modules')->get('TemplateEngineFactory');
+
+// Render foo.html.twig with some data.
 $factory->render('foo', ['title' => 'Foo', 'body' => 'Hello World']);
 ```
 
 ### Automatic Page Rendering
 
-If enabled, this feature uses the template engine to render ProcessWire pages when calling the `Page::render` method.
+If enabled, this feature uses the template engine to render ProcessWire pages when calling `Page::render`.
 By default, the module tries to find a Twig template matching the same name as the ProcessWire template:
 
 * `/site/templates/views/home.html.twig` corresponds to `/site/templates/home.php`

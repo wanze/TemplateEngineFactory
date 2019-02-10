@@ -30,7 +30,8 @@ class ControllerTest extends TestCase
     {
         $this->wire = $this->bootstrapProcessWire();
 
-        $this->fakeSitePath($this->wire, 'site/modules/TemplateEngineFactory/tests/');
+        $this->fakePath($this->wire, 'site', 'site/modules/TemplateEngineFactory/tests/');
+        $this->fakePath($this->wire, 'templates', 'site/modules/TemplateEngineFactory/tests/templates/');
 
         $this->factory = new TemplateEngineFactory();
         $this->factory->registerEngine('ProcessWire', new TemplateEngineProcesswire($this->factory->getArray()));
@@ -45,7 +46,7 @@ class ControllerTest extends TestCase
     /**
      * @covers ::execute
      */
-    public function testExecute_dataPassedToController_dataRenderedCorrectlyViaTemplateEngine()
+    public function testExecute_passDataToController_dataRenderedCorrectlyViaTemplateEngine()
     {
         $controllerFile = dirname(__DIR__) . '/templates/controller-test.php';
         $templateFile = 'controller-test.php';
@@ -55,5 +56,22 @@ class ControllerTest extends TestCase
         $controller->set('bar', 'bar');
 
         $this->assertEquals('foo => bar', $controller->execute());
+    }
+
+    public function testConstructor_initializeWithRelativeOrAbsoluteController_SameFileIsUsed()
+    {
+        $controllerAbsolute = dirname(__DIR__) . '/templates/controller-test.php';
+        $controllerRelative = 'controller-test.php';
+        $templateFile = 'controller-test.php';
+
+        $controller1 = new Controller($this->factory, $controllerAbsolute, $templateFile);
+        $controller2 = new Controller($this->factory, $controllerRelative, $templateFile);
+
+        $data = ['foo' => 'foo', 'bar' => 'bar'];
+
+        $controller1->setArray($data);
+        $controller2->setArray($data);
+
+        $this->assertEquals($controller1->execute(), $controller2->execute());
     }
 }

@@ -38,7 +38,7 @@ class Controller extends WireData
         parent::__construct();
 
         $this->factory = $factory;
-        $this->controller = new TemplateFile($controllerFile);
+        $this->controller = new TemplateFile($this->resolvePath($controllerFile));
         $this->templateFile = $templateFile;
     }
 
@@ -69,5 +69,17 @@ class Controller extends WireData
         $this->controller->set($key, $value);
 
         return parent::set($key, $value);
+    }
+
+    /**
+     * @param string $controllerFile
+     */
+    private function resolvePath($controllerFile)
+    {
+        if (strpos($controllerFile, DIRECTORY_SEPARATOR) === 0) {
+            return $controllerFile;
+        }
+
+        return $this->wire('config')->paths->templates . $controllerFile;
     }
 }
