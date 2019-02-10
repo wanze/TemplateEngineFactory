@@ -8,7 +8,8 @@
     "authors": [
         {
             "name": "Stefan Wanzenried",
-            "homepage": "https://github.com/wanze"
+            "homepage": "https://github.com/wanze",
+            "email": "stefan.wanzenried@gmail.com"
         },
         {
             "name": "TemplateEngineFactory Contributors",

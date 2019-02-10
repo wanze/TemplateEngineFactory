@@ -3,7 +3,6 @@ namespace TemplateEngineFactory\Test;
 
 use PHPUnit\Framework\TestCase;
 use ProcessWire\ProcessWire;
-use ProcessWire\TemplateEngineFactory;
 use TemplateEngineFactory\TemplateEngineProcesswire;
 use TemplateEngineFactory\Controller;
 
@@ -33,7 +32,7 @@ class ControllerTest extends TestCase
         $this->fakePath($this->wire, 'site', 'site/modules/TemplateEngineFactory/tests/');
         $this->fakePath($this->wire, 'templates', 'site/modules/TemplateEngineFactory/tests/templates/');
 
-        $this->factory = new TemplateEngineFactory();
+        $this->factory = $this->wire->wire('modules')->get('TemplateEngineFactory');
         $this->factory->registerEngine('ProcessWire', new TemplateEngineProcesswire($this->factory->getArray()));
         $this->factory->set('engine', 'ProcessWire');
     }

@@ -3,15 +3,15 @@
 [![Build Status](https://travis-ci.org/wanze/TemplateEngineFactory.svg?branch=next)](https://travis-ci.org/wanze/TemplateEngineFactory)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-A module integrating template engines such as Twig into ProcessWire. It allows to render pages or individual templates
+A ProcessWire module integrating template engines such as Twig. It allows to render pages or individual templates
 via template engine and encourages to separate logic from markup by implementing a simple _MVC_ pattern. 
 
 * For a quick introduction, please read the [Getting Started](#getting-started) section of this readme.
 * More information is available in the official [Documentation](DOCUMENTATION.md).
 
-> Version `2.x` of this module differs from the `1.x` version in many ways. Modules providing template engines must now be
-installed with Composer only. Twig is currently the only template engine implemented for the `2.x` major version. Please
-take a look at the [upgrade guide](), as the new version introduces backwards compatibility breaks.
+> Version `2.x` of this module differs from the `1.x` version in many ways. Modules providing template engines _must_ be
+installed with Composer. Twig is currently the only template engine implemented for the `2.x` major version. Please
+take a look at the [update guide](), as the new version introduces backwards compatibility breaks.
 
 ## Requirements
 
@@ -41,7 +41,7 @@ composer require wanze/template-engine-twig:^2.0
 ```
 
 This will install the _TemplateEngineTwig_ and _TemplateEngineFactory_ modules in one step, no need to install both
-separately. It also installs the Twig dependencies, pretty neat!
+separately. It also installs the Twig dependencies for us, pretty neat!
 
 > ℹ️ This module includes test dependencies. If you are installing it on production with `composer install`, make sure to
 pass the `--no-dev` flag to omit autoloading any unnecessary test dependencies!.
