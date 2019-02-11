@@ -68,7 +68,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     /**
      * Initialize module by hooking into Page::render.
      */
-    public function ready()
+    public function init()
     {
         if (!$this->get('auto_page_render')) {
             return;
