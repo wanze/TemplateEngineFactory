@@ -232,7 +232,8 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      *
      * @return bool
      */
-    private function shouldRenderTemplate(Template $template) {
+    private function shouldRenderTemplate(Template $template)
+    {
         // Do not render admin pages.
         if ($template->name === 'admin') {
             return false;
@@ -325,7 +326,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
         $templates = [];
         foreach (wire('templates') as $template) {
             //Exclude system templates
-            if ($template->flags & Template::flagSystem){
+            if ($template->flags & Template::flagSystem) {
                 continue;
             }
             $templates[$template->id] = $template->name;

@@ -1,7 +1,9 @@
 # Template Engine Factory
 
 [![Build Status](https://travis-ci.org/wanze/TemplateEngineFactory.svg?branch=next)](https://travis-ci.org/wanze/TemplateEngineFactory)
+[![StyleCI](https://github.styleci.io/repos/21270731/shield?branch=next)](https://github.styleci.io/repos/21270731)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![ProcessWire 3](https://img.shields.io/badge/ProcessWire-3.x-orange.svg)](https://github.com/processwire/processwire)
 
 A ProcessWire module integrating template engines such as _Twig_. It allows to render pages or individual templates
 via template engine and encourages to separate logic from markup by implementing a simple _MVC_ pattern. 
