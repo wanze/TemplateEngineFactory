@@ -2,6 +2,7 @@
 
 require_once(dirname(dirname(dirname(dirname(__DIR__)))) . '/index.php');
 
-// Install TemplateEngineFactory & TemplateEngineProcessWire
-$wire->wire('modules')->install('TemplateEngineFactory');
-$wire->wire('modules')->install('TemplateEngineProcesswire');
+// Install TemplateEngineFactory & TemplateEngineProcessWire.
+// Note: We use get() instead of install() which will install the modules and call the init() method!
+$wire->wire('modules')->get('TemplateEngineFactory');
+$wire->wire('modules')->get('TemplateEngineProcesswire');
