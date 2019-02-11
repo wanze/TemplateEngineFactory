@@ -29,7 +29,7 @@ class TemplateEngineProcesswire extends WireData implements Module
         ];
     }
 
-    public function ready()
+    public function init()
     {
         /** @var \ProcessWire\TemplateEngineFactory $factory */
         $factory = $this->wire('modules')->get('TemplateEngineFactory');
