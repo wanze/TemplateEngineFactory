@@ -19,7 +19,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
      */
     private static $defaultConfig = [
         'engine' => '',
-        'auto_page_render' => true,
+        'auto_page_render' => 1,
         'api_var' => 'view',
         'enabled_templates' => [],
         'disabled_templates' => [],
@@ -203,10 +203,9 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     protected function ___shouldRenderPage(Page $page)
     {
         // If the page is not viewable, there is nothing to render for the template engine.
-        // TODO: Find out if the below makes sense.
-//        if (!$page->viewable()) {
-//            return false;
-//        }
+        if (!$page->viewable()) {
+            return false;
+        }
 
         return $this->shouldRenderTemplate($page->get('template'));
     }
@@ -246,11 +245,11 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
 
         // Check if the template is enabled or disabled.
         if (count($this->get('enabled_templates'))) {
-            return in_array($template->name, $this->get('enabled_templates'));
+            return in_array($template->id, $this->get('enabled_templates'));
         }
 
         if (count($this->get('disabled_templates'))) {
-            return !in_array($template->name, $this->get('disabled_templates'));
+            return !in_array($template->id, $this->get('disabled_templates'));
         }
 
         return true;
@@ -329,7 +328,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
             if ($template->flags & Template::flagSystem){
                 continue;
             }
-            $templates[$template->name] = $template->name;
+            $templates[$template->id] = $template->name;
         }
 
         /** @var \ProcessWire\InputfieldSelect $field */

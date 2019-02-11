@@ -8,13 +8,16 @@ use TemplateEngineFactory\TemplateVariables;
 /**
  * Tests for the TemplateVariables class.
  *
- * @coversDefaultClass \ProcessWire\TemplateEngineFactory
+ * @coversDefaultClass \TemplateEngineFactory\TemplateVariables
  *
  * @group TemplateEngineFactory
  */
 class TemplateVariablesTest extends TestCase
 {
-    public function testConstructor_CalledEmptyOrWithData_ReturnsCorrectData()
+    /**
+     * @test
+     */
+    public function it_should_return_the_correct_variables()
     {
         $vars1 = new TemplateVariables();
 

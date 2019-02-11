@@ -1,25 +1,15 @@
 <?php
 namespace TemplateEngineFactory\Test;
 
-use PHPUnit\Framework\TestCase;
-use ProcessWire\ProcessWire;
-use TemplateEngineFactory\TemplateEngineProcesswire;
-use TemplateEngineFactory\Controller;
-
 /**
  * Tests for the Controller class.
  *
  * @coversDefaultClass \TemplateEngineFactory\Controller
+ *
+ * @group TemplateEngineFactory
  */
-class ControllerTest extends TestCase
+class ControllerTest extends ProcessWireTestCaseBase
 {
-    use TestHelperTrait;
-
-    /**
-     * @var \ProcessWire\ProcessWire
-     */
-    private $wire;
-
     /**
      * @var \ProcessWire\TemplateEngineFactory
      */
@@ -27,44 +17,41 @@ class ControllerTest extends TestCase
 
     protected function setUp()
     {
-        $this->wire = $this->bootstrapProcessWire();
-
-        $this->fakePath($this->wire, 'site', 'site/modules/TemplateEngineFactory/tests/');
-        $this->fakePath($this->wire, 'templates', 'site/modules/TemplateEngineFactory/tests/templates/');
+        $this->fakePath('site', 'site/modules/TemplateEngineFactory/tests/');
+        $this->fakePath('templates', 'site/modules/TemplateEngineFactory/tests/templates/');
 
         $this->factory = $this->wire->wire('modules')->get('TemplateEngineFactory');
-        $this->factory->registerEngine('ProcessWire', new TemplateEngineProcesswire($this->factory->getArray()));
         $this->factory->set('engine', 'ProcessWire');
     }
 
-    protected function tearDown()
-    {
-        ProcessWire::removeInstance($this->wire);
-    }
-
     /**
+     * @test
      * @covers ::execute
      */
-    public function testExecute_passDataToController_dataRenderedCorrectlyViaTemplateEngine()
+    public function it_should_pass_data_to_the_controller_and_render_the_associated_template()
     {
-        $controllerFile = dirname(__DIR__) . '/templates/controller-test.php';
-        $templateFile = 'controller-test.php';
+        $controllerFile = dirname(__DIR__) . '/templates/controller3.php';
+        $templateFile = 'controller1.php';
 
-        $controller = new Controller($this->factory, $controllerFile, $templateFile);
+        $controller = $this->factory->controller($controllerFile, $templateFile);
         $controller->set('foo', 'foo');
         $controller->set('bar', 'bar');
 
         $this->assertEquals('foo => bar', $controller->execute());
     }
 
-    public function testConstructor_initializeWithRelativeOrAbsoluteController_SameFileIsUsed()
+    /**
+     * @test
+     * @covers ::execute
+     */
+    public function it_should_resolve_the_controller_file_with_absolute_or_relative_path()
     {
-        $controllerAbsolute = dirname(__DIR__) . '/templates/controller-test.php';
-        $controllerRelative = 'controller-test.php';
-        $templateFile = 'controller-test.php';
+        $controllerAbsolute = dirname(__DIR__) . '/templates/controller3.php';
+        $controllerRelative = 'controller3.php';
+        $templateFile = 'controller1.php';
 
-        $controller1 = new Controller($this->factory, $controllerAbsolute, $templateFile);
-        $controller2 = new Controller($this->factory, $controllerRelative, $templateFile);
+        $controller1 = $this->factory->controller($controllerAbsolute, $templateFile);
+        $controller2 = $this->factory->controller($controllerRelative, $templateFile);
 
         $data = ['foo' => 'foo', 'bar' => 'bar'];
 

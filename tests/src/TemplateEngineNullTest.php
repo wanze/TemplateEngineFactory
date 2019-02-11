@@ -8,18 +8,18 @@ use TemplateEngineFactory\TemplateEngineNull;
 /**
  * Tests for the TemplateEngineNull class.
  *
- * @coversDefaultClass \ProcessWire\TemplateEngineFactory
+ * @coversDefaultClass \TemplateEngineFactory\TemplateEngineNull
  *
  * @group TemplateEngineFactory
  */
 class TemplateEngineNullTest extends TestCase
 {
     /**
+     * @test
      * @dataProvider renderDataProvider
-     *
      * @covers ::render
      */
-    public function testRender_PassDifferentTemplatesAndData_AlwaysReturnsEmptyString($template, array $data)
+    public function it_should_always_render_an_empty_string($template, array $data)
     {
         $engine = new TemplateEngineNull();
         $this->assertEquals('', $engine->render($template, $data));

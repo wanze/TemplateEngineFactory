@@ -2,14 +2,11 @@
 
 namespace TemplateEngineFactory\Test;
 
-use PHPUnit\Framework\TestCase;
 use ProcessWire\HookEvent;
-use ProcessWire\ProcessWire;
-use ProcessWire\Template;
 use ProcessWire\TemplateEngineFactory;
 use TemplateEngineFactory\TemplateEngineInterface;
 use TemplateEngineFactory\TemplateEngineNull;
-use TemplateEngineFactory\TemplateVariables;
+use TemplateEngineFactory\TemplateEngineProcessWire;
 
 /**
  * Tests for the TemplateEngineFactory module.
@@ -18,122 +15,84 @@ use TemplateEngineFactory\TemplateVariables;
  *
  * @group TemplateEngineFactory
  */
-class TemplateEngineFactoryTest extends TestCase
+class TemplateEngineFactoryTest extends ProcessWireTestCaseBase
 {
-    use TestHelperTrait;
-
     /**
      * @var TemplateEngineFactory
      */
     private $factory;
 
-    /**
-     * @var \ProcessWire\ProcessWire
-     */
-    private $wire;
-
     protected function setUp()
     {
-        $this->wire = $this->bootstrapProcessWire();
-        $this->factory = new TemplateEngineFactory();
-    }
+        parent::setUp();
 
-    protected function tearDown()
-    {
-        ProcessWire::removeInstance($this->wire);
-    }
-
-    public function testConstruct_UsingDefaultConfiguration_ReturnsCorrectConfiguration()
-    {
-        $expected = [
-            'engine' => '',
-            'api_var' => 'view',
-            'auto_page_render' => true,
-            'enabled_templates' => [],
-            'disabled_templates' => [],
-            'templates_path' => 'templates/views/',
-        ];
-
-        $this->assertEquals($expected, $this->factory->getArray());
+        $this->factory = $this->wire('modules')->get('TemplateEngineFactory');
     }
 
     /**
+     * @test
      * @covers ::getEngine
      */
-    public function testGetEngine_NoEngineOrDummyEngineRegistered_ReturnsCorrectEngine()
+    public function it_should_return_the_correct_active_engine()
     {
+        $this->factory->set('engine', '');
         $this->assertInstanceOf(TemplateEngineNull::class, $this->factory->getEngine());
 
         $this->registerDummyEngine();
-
         $this->assertInstanceOf(TemplateEngineDummy::class, $this->factory->getEngine());
     }
 
     /**
+     * @test
      * @covers ::getEngines
      */
-    public function testGetEngines_NoOrMultipleEnginesRegistered_ReturnsRegisteredEngines()
+    public function it_should_return_the_registered_engines()
     {
-        $this->assertEmpty($this->factory->getEngines());
-
+        $this->registerProcesswireEngine();
         $this->registerDummyEngine();
-        $this->registerMockedEngine();
 
         $engines = $this->factory->getEngines();
 
         $this->assertCount(2, $engines);
-        $this->assertInstanceOf(TemplateEngineInterface::class, array_pop($engines));
         $this->assertInstanceOf(TemplateEngineDummy::class, array_pop($engines));
+        $this->assertInstanceOf(TemplateEngineProcessWire::class, array_pop($engines));
     }
 
     /**
+     * @test
      * @covers ::render
      */
-    public function testRender_NoEngineOrDummyEngineRegistered_EngineRendersCorrectOutput()
+    public function it_should_render_empty_string_if_no_engine_is_active()
     {
+        $this->factory->set('engine', '');
+
         $this->assertEquals('', $this->factory->render('some/template'));
-
-        $this->registerDummyEngine();
-
-        $this->assertEquals('No data', $this->factory->render('some/template'));
-        $this->assertEquals('foo => bar', $this->factory->render('some/template', ['foo' => 'bar']));
     }
 
     /**
+     * @test
      * @covers ::ready
      */
-    public function testReady_AutomaticPageRenderingEnabled_HooksToPageRenderRegistered()
+    public function it_should_register_page_render_hooks_if_automatic_page_rendering_is_enabled()
     {
-        $this->factory->ready();
-
-        $this->assertTrue($this->hookExists($this->wire, 'Page::render', TemplateEngineFactory::class, 'before'));
-        $this->assertTrue($this->hookExists($this->wire, 'Page::render', TemplateEngineFactory::class, 'after'));
+        $this->assertHookExists('Page::render', TemplateEngineFactory::class, 'before');
+        $this->assertHookExists('Page::render', TemplateEngineFactory::class, 'after');
     }
 
     /**
-     * @covers ::ready
+     * @test
      */
-    public function testReady_AutomaticPageRenderingDisabled_HooksToPageRenderNotRegistered()
+    public function it_should_use_a_custom_template_resolved_with_hook()
     {
-        $this->factory->set('auto_page_render', false);
-        $this->factory->ready();
-
-        $this->assertFalse($this->hookExists($this->wire, 'Page::render', TemplateEngineFactory::class, 'before'));
-        $this->assertFalse($this->hookExists($this->wire, 'Page::render', TemplateEngineFactory::class, 'after'));
-    }
-
-    public function testHookResolveTemplate_RegisterHookReturningCustomTemplate_TemplateEngineUsesCustomTemplate()
-    {
-        $this->factory->ready();
-
         $engine = $this->registerMockedEngine();
 
-        $page = $this->getPageWithTemplate('my-template', dirname(__DIR__) . '/templates/foo.php');
+        $template = $this->createTemplate('controller1', dirname(__DIR__) . '/templates/controller1.php');
+        $page = $this->createPage($template, '/');
 
         $engine
             ->expects($this->at(0))
             ->method('render')
-            ->with('my-template');
+            ->with('controller1');
 
         $engine
             ->expects($this->at(1))
@@ -143,7 +102,7 @@ class TemplateEngineFactoryTest extends TestCase
         // First call without hook: Should use 'my-template'.
         $page->render();
 
-        $this->wire->addHookAfter('TemplateEngineFactory::resolveTemplate', function (HookEvent $event) {
+        $this->addHookAfter('TemplateEngineFactory::resolveTemplate', function (HookEvent $event) {
             $event->return = 'my-custom-template';
         });
 
@@ -151,31 +110,16 @@ class TemplateEngineFactoryTest extends TestCase
         $page->render();
     }
 
-    public function testEnabledTemplates_TemplateOfRenderedPageEnabled_PageRenderedByTemplateEngine()
+    /**
+     * @test
+     * @covers ::render
+     */
+    public function it_should_not_render_a_page_without_controller()
     {
-        $this->factory->ready();
-        $this->factory->set('enabled_templates', ['my-template']);
-
         $engine = $this->registerMockedEngine();
 
-        $page = $this->getPageWithTemplate('my-template', dirname(__DIR__) . '/templates/foo.php');
-
-        $engine
-            ->expects($this->once())
-            ->method('render')
-            ->with('my-template');
-
-        $page->render();
-    }
-
-    public function testEnabledTemplates_TemplateOfRenderedPageNotEnabled_PageNotRenderedByTemplateEngine()
-    {
-        $this->factory->ready();
-        $this->factory->set('enabled_templates', ['home']);
-
-        $engine = $this->registerMockedEngine();
-
-        $page = $this->getPageWithTemplate('not-home', dirname(__DIR__) . '/templates/foo.php');
+        $template = $this->createTemplate('template-with-no-file');
+        $page = $this->createPage($template, '/');
 
         $engine
             ->expects($this->never())
@@ -184,14 +128,24 @@ class TemplateEngineFactoryTest extends TestCase
         $page->render();
     }
 
-    public function testDisabledTemplates_TemplateOfRenderedPageDisabled_PageNotRenderedByTemplateEngine()
+    /**
+     * @test
+     * @covers ::render
+     */
+    public function it_should_not_render_a_page_not_viewable()
     {
-        $this->factory->ready();
-        $this->factory->set('disabled_templates', ['disabled-template']);
-
         $engine = $this->registerMockedEngine();
 
-        $page = $this->getPageWithTemplate('disabled-template', dirname(__DIR__) . '/templates/foo.php');
+        $template = $this->createTemplate('controller1', dirname(__DIR__) . '/templates/controller1.php');
+        $page = $this->createPage($template, '/');
+
+        // Make Page::viewable return false for the created page.
+        $this->addHookAfter('Page::viewable', function (HookEvent $event) use ($page) {
+            $hookedPage = $event->object;
+            if ($hookedPage->id === $page->id) {
+                $event->return = false;
+            }
+        });
 
         $engine
             ->expects($this->never())
@@ -200,30 +154,23 @@ class TemplateEngineFactoryTest extends TestCase
         $page->render();
     }
 
-    public function testDisabledTemplates_TemplateOfRenderedPageNotDisabled_PageRenderedByTemplateEngine()
+    /**
+     * @test
+     */
+    public function it_should_not_render_a_page_if_prevented_via_hook()
     {
-        $this->factory->ready();
-        $this->factory->set('disabled_templates', ['disabled-template']);
-
         $engine = $this->registerMockedEngine();
 
-        $page = $this->getPageWithTemplate('enabled-template', dirname(__DIR__) . '/templates/foo.php');
+        $template = $this->createTemplate('controller1', dirname(__DIR__) . '/templates/controller1.php');
+        $page = $this->createPage($template, '/');
 
-        $engine
-            ->expects($this->once())
-            ->method('render')
-            ->with('enabled-template');
-
-        $page->render();
-    }
-
-    public function testPageRender_RenderedPageDoesNotHaveTemplateFile_PageNotRenderedByTemplateEngine()
-    {
-        $this->factory->ready();
-
-        $engine = $this->registerMockedEngine();
-
-        $page = $this->getPageWithTemplate('a-template-with-no-file');
+        // Prevent the rendering via template engine
+        $this->addHookAfter('TemplateEngineFactory::shouldRenderPage', function (HookEvent $event) use ($page) {
+            $renderedPage = $event->arguments('page');
+            if ($renderedPage->id === $page->id) {
+                $event->return = false;
+            }
+        });
 
         $engine
             ->expects($this->never())
@@ -232,57 +179,138 @@ class TemplateEngineFactoryTest extends TestCase
         $page->render();
     }
 
-    public function testPageRender_RenderedPageProvidesTemplateVariables_TemplateVariablesPassedToTemplateEngine()
+    /**
+     * @test
+     * @covers ::render
+     */
+    public function it_should_pass_template_variables_from_the_controller_to_the_view()
     {
-        // These variables are passed to the engine via $view->set().
-        $variables = [
-            'foo' => 'bar',
-            'this' => 'that',
-        ];
+        $template = $this->createTemplate('controller1', dirname(__DIR__) . '/templates/controller1.php');
+        $page = $this->createPage($template, '/');
 
-        // Hook after Page::render but before the factory renders the template
-        // in order to manipulate the template variables.
-        $this->wire->addHookAfter('Page::render', function () use ($variables) {
-            $this->wire->wire($this->factory->get('api_var'), new TemplateVariables($variables));
-        }, null, ['priority' => 50]);
+        // Let the site and template path point to the test directory to pick up our test controllers & views.
+        $this->fakePath('site', 'site/modules/TemplateEngineFactory/tests/');
+        $this->fakePath('templates', 'site/modules/TemplateEngineFactory/tests/templates/');
 
-        $this->factory->ready();
+        $this->registerProcesswireEngine();
 
-        $engine = $this->registerMockedEngine();
-
-        $engine
-            ->expects($this->once())
-            ->method('render')
-            ->with('foo', $variables);
-
-        $page = $this->getPageWithTemplate('foo', dirname(__DIR__) . '/templates/foo.php');
-        $page->render();
+        $this->assertEquals('foo => bar', $page->render());
     }
 
-    public function testHookResolveTemplateVariables_RegisterHookWithCustomVariables_VariablesArePassedToTemplateEngine()
+    /**
+     * @test
+     */
+    public function it_should_only_render_enabled_templates()
     {
-        $variables = [
-            'foo' => 'bar',
-            'this' => 'that',
-        ];
+        $this->fakePath('site', 'site/modules/TemplateEngineFactory/tests/');
+        $this->fakePath('templates', 'site/modules/TemplateEngineFactory/tests/templates/');
 
+        $template1 = $this->createTemplate('controller1', dirname(__DIR__) . '/templates/controller1.php');
+        $template2 = $this->createTemplate('controller2', dirname(__DIR__) . '/templates/controller2.php');
+
+        $page1 = $this->createPage($template1, '/');
+        $page2 = $this->createPage($template2, '/');
+
+        $this->factory->set('enabled_templates', [$template1->id]);
+        $this->factory->set('disabled_templates', []);
+
+        $this->registerProcesswireEngine();
+
+        $this->assertEquals('foo => bar', $page1->render());
+        $this->assertEquals('', $page2->render());
+    }
+
+    /**
+     * @test
+     */
+    public function it_should_not_render_disabled_templates()
+    {
+        $this->fakePath('site', 'site/modules/TemplateEngineFactory/tests/');
+        $this->fakePath('templates', 'site/modules/TemplateEngineFactory/tests/templates/');
+
+        $template1 = $this->createTemplate('controller1', dirname(__DIR__) . '/templates/controller1.php');
+        $template2 = $this->createTemplate('controller2', dirname(__DIR__) . '/templates/controller2.php');
+
+        $page1 = $this->createPage($template1, '/');
+        $page2 = $this->createPage($template2, '/');
+
+        $this->factory->set('enabled_templates', []);
+        $this->factory->set('disabled_templates', [$template2->id]);
+
+        $this->registerProcesswireEngine();
+
+        $this->assertEquals('foo => bar', $page1->render());
+        $this->assertEquals('', $page2->render());
+    }
+
+    /**
+     * @test
+     */
+    public function it_should_render_the_404_page_if_the_controller_throws_a_404_exception()
+    {
+        $template = $this->createTemplate('throw-404', dirname(__DIR__) . '/templates/throw-404.php');
+        $page = $this->createPage($template, '/');
+
+        $this->fakePath('site', 'site/modules/TemplateEngineFactory/tests/');
+        $this->fakePath('templates', 'site/modules/TemplateEngineFactory/tests/templates/');
+
+        $this->registerProcesswireEngine();
+
+        // Prevent ProcessWire from sending a header during ProcessPageView::execute.
+        $this->wire('config')->usePoweredBy = null;
+
+        // If a 404 is caught, simply return the string "404!".
+        $this->addHookBefore('ProcessPageView::pageNotFound', function (HookEvent $event) {
+            // Clean output buffering from the template throwing the 404, this should be done by ProcessWire!
+            ob_end_clean();
+            $event->replace = true;
+            $event->return = '404!';
+        });
+
+        // Fake a request from our page and let ProcessPageView process it.
+        $_GET['it'] = $page->url;
+        $processPageView = $this->wire('modules')->get('ProcessPageView');
+        $this->wire('process', $processPageView);
+        $out = $processPageView->execute();
+
+        $this->assertEquals('404!', $out);
+    }
+
+    /**
+     * @test
+     */
+    public function it_should_pass_custom_template_variables_resolved_with_a_hook_to_the_view()
+    {
         // Make the above variables available for the template engine.
-        $this->wire->addHookAfter(
-            'TemplateEngineFactory::resolveTemplateVariables',
-            function (HookEvent $event) use ($variables) {
-                $event->return = $variables;
+        $this->addHookAfter('TemplateEngineFactory::resolveTemplateVariables',
+            function (HookEvent $event) {
+                $event->return = array_merge($event->return, [
+                    'customVariable' => 'custom',
+                ]);
             });
 
+        $this->fakePath('templates', 'site/modules/TemplateEngineFactory/tests/templates/');
+
         $engine = $this->registerMockedEngine();
+
+        $template = $this->createTemplate('controller1', dirname(__DIR__) . '/templates/controller1.php');
+        $page = $this->createPage($template, '/');
+
+        // These are the variables passed to the template. foo & bar are set in the controller,
+        // the "customVariable" has been added via hook above. "_page" is the page being rendered,
+        // this key is added by default by the module.
+        $expectedVariables = [
+            '_page' => $page,
+            'foo' => 'foo',
+            'bar' => 'bar',
+            'customVariable' => 'custom',
+        ];
 
         $engine
             ->expects($this->once())
             ->method('render')
-            ->with('foo', $variables);
+            ->with('controller1', $expectedVariables);
 
-        $this->factory->ready();
-
-        $page = $this->getPageWithTemplate('foo', dirname(__DIR__) . '/templates/foo.php');
         $page->render();
     }
 
@@ -303,5 +331,11 @@ class TemplateEngineFactoryTest extends TestCase
     {
         $this->factory->registerEngine('Dummy', new TemplateEngineDummy());
         $this->factory->set('engine', 'Dummy');
+    }
+
+    private function registerProcesswireEngine()
+    {
+        $this->factory->registerEngine('ProcessWire', new TemplateEngineProcessWire($this->factory->getArray()));
+        $this->factory->set('engine', 'ProcessWire');
     }
 }

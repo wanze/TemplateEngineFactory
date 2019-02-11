@@ -2,8 +2,6 @@
 
 namespace TemplateEngineFactory\Test;
 
-use PHPUnit\Framework\TestCase;
-use ProcessWire\ProcessWire;
 use ProcessWire\WireException;
 use TemplateEngineFactory\TemplateEngineProcessWire;
 
@@ -14,15 +12,8 @@ use TemplateEngineFactory\TemplateEngineProcessWire;
  *
  * @group TemplateEngineFactory
  */
-class TemplateEngineProcessWireTest extends TestCase
+class TemplateEngineProcessWireTest extends ProcessWireTestCaseBase
 {
-    use TestHelperTrait;
-
-    /**
-     * @var \ProcessWire\ProcessWire
-     */
-    private $wire;
-
     /**
      * @var TemplateEngineProcessWire
      */
@@ -30,9 +21,7 @@ class TemplateEngineProcessWireTest extends TestCase
 
     protected function setUp()
     {
-        $this->wire = $this->bootstrapProcessWire();
-
-        $this->fakePath($this->wire, 'site', 'site/modules/TemplateEngineFactory/tests/');
+        $this->fakePath('site', 'site/modules/TemplateEngineFactory/tests/');
 
         $factoryConfig = $this->wire->wire('modules')
             ->get('TemplateEngineFactory')
@@ -41,15 +30,11 @@ class TemplateEngineProcessWireTest extends TestCase
         $this->engine = new TemplateEngineProcessWire($factoryConfig);
     }
 
-    protected function tearDown()
-    {
-        ProcessWire::removeInstance($this->wire);
-    }
-
     /**
+     * @test
      * @covers ::render
      */
-    public function testRender_MissingTemplate_ThrowsException()
+    public function it_should_throw_an_exception_if_the_template_file_does_not_exist()
     {
         $this->expectException(WireException::class);
 
@@ -57,18 +42,20 @@ class TemplateEngineProcessWireTest extends TestCase
     }
 
     /**
+     * @test
      * @covers ::render
      */
-    public function testRender_TemplateWithOrWithoutSuffix_TemplatesFoundAndSameOutput()
+    public function it_should_find_the_template_with_or_without_suffix_and_render_same_output()
     {
         $this->assertEquals('Dummy', $this->engine->render('dummy'));
         $this->assertEquals('Dummy', $this->engine->render('dummy.php'));
     }
 
     /**
+     * @test
      * @covers ::render
      */
-    public function testRender_PassingDataToTemplate_DataAvailableInTemplateAndRenderedCorrectly()
+    public function it_should_pass_data_to_the_template()
     {
         $series = [
             'Breaking Bad',
@@ -76,9 +63,9 @@ class TemplateEngineProcessWireTest extends TestCase
             'Big Bang Theory',
         ];
 
-        // The series are rendered comma separated, @see templates/views/test-data.php
+        // The series are rendered comma separated, @see templates/views/series.php
         $expected = implode(',', $series);
 
-        $this->assertEquals($expected, $this->engine->render('test-data', ['series' => $series]));
+        $this->assertEquals($expected, $this->engine->render('series', ['series' => $series]));
     }
 }
