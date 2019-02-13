@@ -1,7 +1,7 @@
 # Template Engine Factory
 
-[![Build Status](https://travis-ci.org/wanze/TemplateEngineFactory.svg?branch=next)](https://travis-ci.org/wanze/TemplateEngineFactory)
-[![StyleCI](https://github.styleci.io/repos/21270731/shield?branch=next)](https://github.styleci.io/repos/21270731)
+[![Build Status](https://travis-ci.org/wanze/TemplateEngineFactory.svg?branch=master)](https://travis-ci.org/wanze/TemplateEngineFactory)
+[![StyleCI](https://github.styleci.io/repos/21270731/shield?branch=master)](https://github.styleci.io/repos/21270731)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![ProcessWire 3](https://img.shields.io/badge/ProcessWire-3.x-orange.svg)](https://github.com/processwire/processwire)
 
@@ -14,7 +14,7 @@ via template engine and encourages to separate logic from markup by implementing
 > Version `2.x` of this module differs from the `1.x` version in many ways. Modules providing template engines _must_ be
 installed with Composer. Twig is currently the only template engine implemented for the `2.x` major version. Please
 take a look at the [update guide](DOCUMENTATION.md#updating-from-1x-to-2x), as the new version introduces backwards
-compatibility breaks.
+compatibility breaks. The `1.x` version of the module is available on the [1.x branch](https://github.com/wanze/TemplateEngineFactory/tree/1.x).
 
 ## Requirements
 

@@ -15,6 +15,7 @@
 The `2.x` major version introduces several backwards compatibility breaks. The amount of required manual update steps
 depends on how many features were used. The following list _should_ cover the most important changes: 
 
+* Your template engine must support the `2.x` version. Check the available template engines in the [readme](README.md#available-template-engines).
 * The API variable `$factory` is no longer available. Use `$modules->get('TemplateEngineFactory')` to get an instance of
 the `\ProcessWire\TemplateEngineFactory` class.
 * The factory has a new configuration `templates_path`, indicating where the engine's templates are stored. This config
