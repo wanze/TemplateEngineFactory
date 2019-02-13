@@ -22,17 +22,20 @@ was previously defined on template engine level. If you have customized this set
 the `TemplateEngineFactory` module's config. Defaults to `templates/views`.
 * _Chunks_ are now called _Controllers_. While the semantics remain the same, the public API has changed. Please
 read the [Controllers](#controllers) chapter on how to update your code.
-* The method `TemplateEngineFactory::instance()` (plus some aliases) do no longer exist. Use
+* The method `TemplateEngineFactory::instance()`, plus some aliases do no longer exist. Use
 `TemplateEngineFactory::render()` to render a given template of the engine.
 * On template engine level, the confusing `global_template` setting does no longer exist. Use the introduced hook
 `___resolveTemplate` to resolve a custom template when a page gets rendered. The default strategy still looks for a template
 with the same name as the ProcessWire template.
 
+> Make sure to clear the compiled files cache after replacing the module files! Press _Clear Compiled Files_ at the
+bottom when viewing the site's modules in the ProcessWire admin. Or simply delete anything in `./site/assets/cache/`.
+
 ## Controllers
 
 A _controller_ wraps a ProcessWire template executing some logic and a template file of the active engine, rendering the
 output. This is how the _Automatic page rendering_ feature works, by using the template file of a page as controller. By
-defining custom controllers, you get the the same functionality:
+defining custom controllers, you get the same functionality without depending on a page:
 
 ```php
 $factory = $modules->get('TemplateEngineFactory');
@@ -141,7 +144,31 @@ wire()->addHookAfter('TemplateEngineFactory::shouldRenderPage', function (HookEv
 
 ## Best Practices
 
+Write me please 😬
+
 ## Implementing a Template Engine
 
+Adding your favorite template engine to the factory is really easy.
+
+* Each template engine is added via ProcessWire module. This module provides the template engine's configuration and
+registers the engine to the factory.
+* The engine itself is implemented using the `TemplateEngineFactory\TemplateEngineInterface` contract.
+* The factory provides an abstract base implementation `TemplateEngineFactory\TemplateEngineBase` which your engine
+should extend.
+
+For an example, take a look at the [TemplateEngineTwig](https://github.com/wanze/TemplateEngineTwig) implementation. 
+
 ## Running Tests
+
+The module includes [PHPUnit](https://phpunit.de/) based tests cases, located in the `./tests` directory.
+
+* Make sure that the dev dependencies are installed by running `composer install` in the ProcessWire root directory.
+* The tests will create pages and templates. Everything should get cleaned up properly, but you should not run them
+on a production environment 😉.
+
+To run the tests:
+
+```
+vendor/bin/phpunit --bootstrap site/modules/TemplateEngineFactory/tests/bootstrap.php site/modules/TemplateEngineFactory/tests/src
+```  
 
