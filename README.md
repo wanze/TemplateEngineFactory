@@ -1,13 +1,16 @@
-TemplateEngineFactory
-=====================
+# TemplateEngineFactory
+
 ProcessWire module helping to separate logic from markup. It turns ProcessWire templates into "controllers" which can interact over a new API variable with various template engines like "Smarty" or "Twig". Any template engine can be added to the factory as separate module.
+
+> You are viewing version `1.x` of this module. Head to the current major version [2.x](https://github.com/wanze/TemplateEngineFactory) if you start a new project, or if you want to upgrade from `1.x` to `2.x`.
 
 ## Implemented engines
 
-* **ProcessWire** Default engine using the class *TemplateFile* of ProcessWire. This engine ships with this module.
+* **ProcessWire** Default engine using the class *TemplateFile* of ProcessWire. This engine is bundled with this module.
+* **Twig** See: https://github.com/wanze/TemplateEngineTwig/tree/1.x
 * **Smarty** See: https://github.com/wanze/TemplateEngineSmarty
-* **Twig** See: https://github.com/wanze/TemplateEngineTwig
-* **Jade** See: https://github.com/dreerr/TemplateEngineJade
+* **Mustache** See: https://github.com/blue-tomato/TemplateEngineMustache
+* **Pug** See: https://github.com/dreerr/TemplateEnginePug
 
 ## Installation
 
@@ -148,7 +151,7 @@ $view->clearAllCache();
 
 If caching is supported by the engine, the TemplateEngineFactory module takes care of clearing the cache whenever pages are saved or deleted.
 
-# Implementing a template engine
+## Implementing a template engine
 
 Implementing another template engine is straightforward. Please take a look at the implemented engines like "Smarty" or "Twig" to see some examples. Your engine needs to extend the abstract class "TemplateEngine" and implement some methods.
 ```php
