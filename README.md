@@ -12,9 +12,8 @@ via template engine and encourages to separate logic from markup by implementing
 * More information is available in the official [Documentation](DOCUMENTATION.md).
 
 > Version `2.x` of this module differs from the `1.x` version in many ways. Modules providing template engines _must_ be
-installed with Composer. Twig is currently the only template engine implemented for the `2.x` major version. Please
-take a look at the [update guide](DOCUMENTATION.md#updating-from-1x-to-2x), as the new version introduces backwards
-compatibility breaks. The `1.x` version of the module is available on the [1.x branch](https://github.com/wanze/TemplateEngineFactory/tree/1.x).
+installed with Composer. Please take a look at the [update guide](DOCUMENTATION.md#updating-from-1x-to-2x), as the new
+version introduces backwards compatibility breaks. The `1.x` version of the module is available on the [1.x branch](https://github.com/wanze/TemplateEngineFactory/tree/1.x).
 
 ## Requirements
 
@@ -51,7 +50,7 @@ pass the `--no-dev` flag to omit autoloading any unnecessary test dependencies!.
 
 ## Configuration
 
-The module offers the following configuration options:
+The _TemplateEngineFactory_ offers the following configuration options:
 
 * **`Template Engine`** The template engine used to render pages and templates. Any installed engine is listed here.
 * **`Path to templates`** Relative path from the site directory where template files are stored. E.g. `templates/views/`
@@ -74,6 +73,7 @@ module _TemplateEngineTwig_ offers several configuration related to Twig.
 this module, but it is not installed automatically. Install the module _TemplateEngineProcessWire_ and select the 
 engine in the _TemplateEngineFactory_ module configuration.
 * **Twig** See: https://github.com/wanze/TemplateEngineTwig
+* **Pug** See: https://github.com/dreerr/TemplateEnginePug
 
 ## Getting Started
 
