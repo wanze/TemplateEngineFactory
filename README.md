@@ -74,6 +74,8 @@ this module, but it is not installed automatically. Install the module _Template
 engine in the _TemplateEngineFactory_ module configuration.
 * **Twig** See: https://github.com/wanze/TemplateEngineTwig
 * **Pug** See: https://github.com/dreerr/TemplateEnginePug
+* **Smarty** See: https://github.com/blue-tomato/TemplateEngineSmarty
+* **Mustache** See: https://github.com/blue-tomato/TemplateEngineMustache
 
 ## Getting Started
 
