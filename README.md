@@ -42,8 +42,7 @@ execute the following command:
 composer require wanze/template-engine-twig:^2.0
 ```
 
-This will install the _TemplateEngineTwig_ and _TemplateEngineFactory_ modules in one step, no need to install both
-separately. It also installs the Twig dependencies for us, pretty neat! ✌️
+This will install the _TemplateEngineTwig_ module and all Twig dependencies.
 
 > ℹ️ This module includes test dependencies. If you are installing it on production with `composer install`, make sure to
 pass the `--no-dev` flag to omit autoloading any unnecessary test dependencies!.
@@ -67,7 +66,7 @@ either enable or disable templates.
 > More configuration options might be available in the module providing a template engine, e.g. the
 module _TemplateEngineTwig_ offers several configuration related to Twig.
 
-## Available Template Engines
+## Available template engines
 
 * **ProcessWire** A template engine using ProcessWire's *TemplateFile* class for rendering. This engine is bundled with
 this module, but it is not installed automatically. Install the module _TemplateEngineProcessWire_ and select the 
@@ -79,10 +78,10 @@ engine in the _TemplateEngineFactory_ module configuration.
 
 ## Getting Started
 
-> This section assumes that Twig is used as active template engine, but the usage is excatly the same for any other
-template engine.
+> This section assumes that Twig is used as active template engine, but the usage is exactly the same for any other
+chosen template engine.
 
-### Using the Template Engine to render templates
+### Using the template engine to render templates
 
 Assume the following Twig template exists in `/site/templates/views/foo.html.twig`
 

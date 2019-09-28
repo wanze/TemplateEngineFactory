@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.0.1] - 2019-09-28
+
+### Fixed
+
+* Allow to disable system templates from being rendered by the active template engine, see [TemplateEngineTwig issue #21](https://github.com/wanze/TemplateEngineTwig/issues/21).
+
 ## [2.0.0] - 2019-02-13
 
 * First release of the new major `2.x` version 🐣
@@ -29,7 +35,7 @@ and debug mode is enabled.
 
 ### Fixed
 * Add a hook before `ProcessPageView::pageNotFound` to handle `Wire404Exception` thrown by controllers.
-The current active template engine now receives the configured page displaying a 404 rather
+The current active template engine now receives the configured page displaying a 404 rather.
 than the page throwing the 404 exception.
 
 ## [1.1.1] - 2018-03-18
@@ -41,8 +47,9 @@ than the page throwing the 404 exception.
 * Lower hook priority for the hook executed after `Page::render`. This makes sure that the current active
 template engine returns the markup *before* other modules hooking after `Page::render`.
 
+[2.0.1]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v2.0.1
 [2.0.0]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v2.0.0
 [1.1.3]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v1.1.3
 [1.1.2]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v1.1.2
 [1.1.1]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v1.1.1
-[Unreleased]: https://github.com/wanze/TemplateEngineFactory/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/wanze/TemplateEngineFactory/compare/v2.0.1...HEAD
