@@ -75,6 +75,7 @@ engine in the _TemplateEngineFactory_ module configuration.
 * **Pug** See: https://github.com/dreerr/TemplateEnginePug
 * **Smarty** See: https://github.com/blue-tomato/TemplateEngineSmarty
 * **Mustache** See: https://github.com/blue-tomato/TemplateEngineMustache
+* **Latte** See: https://github.com/daun/TemplateEngineLatte
 
 ## Getting Started
 
