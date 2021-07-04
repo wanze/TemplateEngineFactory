@@ -1,6 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [2.1.0] - 2021-07-04
+
+### Added
+
+* Add support for installation via Composer 2 ([#9](https://github.com/wanze/TemplateEngineFactory/pull/19))
 
 ## [2.0.1] - 2019-09-28
 
@@ -47,9 +51,9 @@ than the page throwing the 404 exception.
 * Lower hook priority for the hook executed after `Page::render`. This makes sure that the current active
 template engine returns the markup *before* other modules hooking after `Page::render`.
 
+[2.1.0]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v2.1.0
 [2.0.1]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v2.0.1
 [2.0.0]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v2.0.0
 [1.1.3]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v1.1.3
 [1.1.2]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v1.1.2
 [1.1.1]: https://github.com/wanze/TemplateEngineFactory/releases/tag/v1.1.1
-[Unreleased]: https://github.com/wanze/TemplateEngineFactory/compare/v2.0.1...HEAD

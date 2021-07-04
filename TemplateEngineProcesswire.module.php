@@ -16,7 +16,7 @@ class TemplateEngineProcesswire extends WireData implements Module
     {
         return [
             'title' => 'Template Engine ProcessWire',
-            'version' => 201,
+            'version' => 210,
             'author' => 'Stefan Wanzenried',
             'summary' => 'ProcessWire templates for the TemplateEngineFactory.',
             'singular' => true,

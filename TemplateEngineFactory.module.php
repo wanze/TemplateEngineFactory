@@ -52,7 +52,7 @@ class TemplateEngineFactory extends WireData implements Module, ConfigurableModu
     {
         return [
             'title' => 'Template Engine Factory',
-            'version' => 201,
+            'version' => 210,
             'author' => 'Stefan Wanzenried',
             'summary' => 'Provides ProcessWire integration for various template engines such as Twig.',
             'href' => 'https://processwire.com/talk/topic/6833-module-templateenginefactory/',
