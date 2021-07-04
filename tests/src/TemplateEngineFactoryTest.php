@@ -282,12 +282,14 @@ class TemplateEngineFactoryTest extends ProcessWireTestCaseBase
     public function it_should_pass_custom_template_variables_resolved_with_a_hook_to_the_view()
     {
         // Make the above variables available for the template engine.
-        $this->addHookAfter('TemplateEngineFactory::resolveTemplateVariables',
+        $this->addHookAfter(
+            'TemplateEngineFactory::resolveTemplateVariables',
             function (HookEvent $event) {
                 $event->return = array_merge($event->return, [
                     'customVariable' => 'custom',
                 ]);
-            });
+            }
+        );
 
         $this->fakePath('templates', 'site/modules/TemplateEngineFactory/tests/templates/');
 

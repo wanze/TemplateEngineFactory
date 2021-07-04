@@ -152,12 +152,14 @@ abstract class ProcessWireTestCaseBase extends TestCase
 
         $regexHookId = "/^${class}:.*:{$method}$/";
 
-        $hooks = array_filter($this->wire->getHooks('*'),
+        $hooks = array_filter(
+            $this->wire->getHooks('*'),
             function ($hook) use ($regexHookId, $fromObject, $type) {
                 return preg_match($regexHookId, $hook['id'])
                     && $hook['toObject'] instanceof $fromObject
                     && $hook['options'][$type] === true;
-            });
+            }
+        );
 
         $exists = count($hooks) > 0;
 

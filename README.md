@@ -1,6 +1,5 @@
 # Template Engine Factory
 
-[![Build Status](https://travis-ci.org/wanze/TemplateEngineFactory.svg?branch=master)](https://travis-ci.org/wanze/TemplateEngineFactory)
 [![StyleCI](https://github.styleci.io/repos/21270731/shield?branch=master)](https://github.styleci.io/repos/21270731)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![ProcessWire 3](https://img.shields.io/badge/ProcessWire-3.x-orange.svg)](https://github.com/processwire/processwire)
